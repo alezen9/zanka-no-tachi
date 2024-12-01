@@ -1,5 +1,5 @@
-import { useMemo, useRef } from "react";
-import { useFrame } from "@react-three/fiber";
+import { useEffect, useMemo, useRef } from "react";
+import { PointsProps, useFrame } from "@react-three/fiber";
 import vertexShader from "./vertex.glsl";
 import fragmentShader from "./fragment.glsl";
 import { AdditiveBlending, ShaderMaterial, Uniform, Vector2 } from "three";
@@ -13,7 +13,7 @@ const uniforms = {
   uResolution: new Uniform(new Vector2(0, 0)),
 };
 
-export default function Fire() {
+export default function Fire(props: PointsProps) {
   const materialRef = useRef<ShaderMaterial>(null);
 
   const particles = useMemo(() => {
@@ -31,18 +31,29 @@ export default function Fire() {
     return { positions, sizes };
   }, []);
 
-  useFrame(({ clock, size, viewport }) => {
+  useEffect(() => {
+    const observer = new ResizeObserver(() => {
+      if (!materialRef.current) return;
+      const dpr = Math.min(window.devicePixelRatio, 2);
+      const x = window.innerWidth * dpr;
+      const y = window.innerHeight * dpr;
+      materialRef.current.uniforms.uResolution.value.set(x, y);
+    });
+    observer.observe(document.body);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
+
+  useFrame(({ clock }) => {
     if (!materialRef.current) return;
     const time = clock.getElapsedTime();
     materialRef.current.uniforms.uTime.value = time;
-    materialRef.current.uniforms.uResolution.value.set(
-      size.width * viewport.dpr,
-      size.height * viewport.dpr,
-    );
   });
 
   return (
-    <points>
+    <points {...props}>
       <bufferGeometry>
         <bufferAttribute
           attach="attributes-position"
