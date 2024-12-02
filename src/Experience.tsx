@@ -1,6 +1,8 @@
 import { Grid, OrbitControls } from "@react-three/drei";
 import { Perf } from "r3f-perf";
 import { useControls } from "leva";
+import FireArea from "./components/FireArea";
+import Yamamoto from "./components/Yamamoto";
 import Fire from "./components/Fire";
 
 const Experience = () => {
@@ -17,21 +19,24 @@ const Experience = () => {
       <OrbitControls
         makeDefault
         enableDamping
-        maxDistance={50}
-        minDistance={3}
+        maxDistance={100}
+        minDistance={10}
         enablePan={false}
-        maxPolarAngle={Math.PI / 2.2}
+        maxPolarAngle={Math.PI / 2.05}
         minPolarAngle={0}
       />
-      <Grid
+      {/* <color attach="background" args={["black"]} /> */}
+      {/* <Grid
         position={[0, -0.01, 0]}
         args={[10.5, 10.5]}
-        cellColor="#6f6f6f"
-        sectionColor="#9d4b4b"
+        cellColor="#F1F1F1"
+        sectionColor="#F8F8F8"
         infiniteGrid
         fadeStrength={10}
-      />
-      <Fire />
+      /> */}
+      <FireArea />
+      <Yamamoto />
+      {/* <Fire scale={3} particleScale={0.9} intensity={1.7} /> */}
     </>
   );
 };

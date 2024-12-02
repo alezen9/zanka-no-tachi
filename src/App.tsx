@@ -13,12 +13,11 @@ const App = () => {
       </div>
       <Canvas
         dpr={[1, 2]}
-        flat
         camera={{
           fov: 45,
           near: 0.1,
           far: 350,
-          position: [0, 2, 10],
+          position: [0, 0, 20],
         }}
       >
         <Experience />

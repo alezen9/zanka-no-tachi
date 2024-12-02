@@ -9,27 +9,48 @@ const PARTICLE_COUNT = 2500;
 const uniforms = {
   uTime: new Uniform(0),
   uLifetime: new Uniform(0.6),
-  uScale: new Uniform(1),
   uResolution: new Uniform(new Vector2(0, 0)),
+  uAnimationSpeed: new Uniform(1),
 };
 
-export default function Fire(props: PointsProps) {
+type Props = {
+  name?: string;
+  position?: PointsProps["position"];
+  scale?: number;
+  particleScale?: number;
+  intensity?: number;
+};
+
+const Fire = (props: Props) => {
+  const {
+    name,
+    particleScale = 1,
+    intensity = 1,
+    scale = 1,
+    position = [0, 0, 0],
+  } = props;
   const materialRef = useRef<ShaderMaterial>(null);
 
   const particles = useMemo(() => {
     const positions = new Float32Array(PARTICLE_COUNT * 3);
     const sizes = new Float32Array(PARTICLE_COUNT);
+    const intensities = new Float32Array(PARTICLE_COUNT);
 
     for (let i = 0; i < PARTICLE_COUNT; i++) {
       const x = (Math.random() - 0.5) * 2;
       const y = Math.random() * 2;
       const z = (Math.random() - 0.5) * 2;
       positions.set([x, y, z], i * 3);
-      sizes[i] = Math.random() * 1.4;
+
+      //   sizes[i] = Math.random() * 500 * particleScale;
+      // Larger size at lower y, smaller at higher y
+      const normalizedY = y / 2; // Normalize y to range [0, 1]
+      sizes[i] = normalizedY * 500 * particleScale; // Larger at y = 0, smaller at y = 2
+      intensities[i] = intensity;
     }
 
-    return { positions, sizes };
-  }, []);
+    return { positions, sizes, intensities };
+  }, [particleScale, intensity]);
 
   useEffect(() => {
     const observer = new ResizeObserver(() => {
@@ -46,6 +67,11 @@ export default function Fire(props: PointsProps) {
     };
   }, []);
 
+  useEffect(() => {
+    if (!materialRef.current) return;
+    materialRef.current.uniforms.uAnimationSpeed.value = intensity;
+  }, [particleScale, intensity]);
+
   useFrame(({ clock }) => {
     if (!materialRef.current) return;
     const time = clock.getElapsedTime();
@@ -53,7 +79,7 @@ export default function Fire(props: PointsProps) {
   });
 
   return (
-    <points {...props}>
+    <points name={name} position={position} scale={[scale, scale * 0.7, scale]}>
       <bufferGeometry>
         <bufferAttribute
           attach="attributes-position"
@@ -67,6 +93,12 @@ export default function Fire(props: PointsProps) {
           array={particles.sizes}
           itemSize={1}
         />
+        <bufferAttribute
+          attach="attributes-aIntensity"
+          count={PARTICLE_COUNT}
+          array={particles.intensities}
+          itemSize={1}
+        />
       </bufferGeometry>
       <shaderMaterial
         ref={materialRef}
@@ -74,10 +106,11 @@ export default function Fire(props: PointsProps) {
         vertexShader={vertexShader}
         fragmentShader={fragmentShader}
         depthWrite={false}
-        depthTest={false}
         blending={AdditiveBlending}
         transparent
       />
     </points>
   );
-}
+};
+
+export default Fire;
