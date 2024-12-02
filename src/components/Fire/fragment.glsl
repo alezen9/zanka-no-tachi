@@ -3,6 +3,7 @@
 #define COS_30_DEG 0.866025
 #define SIN_30_DEG 0.5
 
+
 varying vec3 vPosition;
 
 float getHexagonalMask() {
@@ -45,23 +46,27 @@ float getHexagonalMask() {
     // Hexagonal mask: the point is inside the hexagon if it satisfies both conditions
     float mask = max(sideBoundary, diagonalBoundary);
 
-    // Return the mask value (used with smoothstep to define transparency)
+    // Used with smoothstep to define transparency
     return mask;
 }
 
 
 void main() {
-    vec3 fireBaseColor = vec3(1.0, 1.0, 0.8); // Yellow
-    vec3 fireTipColor = vec3(1.0, 0.1, 0.0);  // Red
-    float gradient = smoothstep(-0.5, 1.5, vPosition.y + sin(vPosition.x * 7.0) * 0.3);
+    vec3 fireBaseColor = vec3(0.97, 0.97, 0.49); // Yellow/white (hottest)
+    vec3 fireTipColor = vec3(1.0, 0.1, 0.0);  // Red (cooler)
 
-    // Calculate the hexagonal mask
+    vec3 corePosition = vec3(0.0, 0.2, 0.0);
+    float distFromCore = length(vPosition - corePosition);
+
+    float gradient = smoothstep(-0.5, 3.0, distFromCore);
+
+    vec3 fireColor = mix(fireBaseColor, fireTipColor, gradient);
+    fireColor *= 0.5; // Dim fire color to avoid overexposure due to blending
+
     float shapeMask = getHexagonalMask();
 
-    // Smooth transition at the edges
     float alpha = 1.0 - smoothstep(0.9, 1.0, shapeMask);
 
-    // Apply the hexagonal mask to the fire color
-    vec3 fireColor = mix(fireBaseColor, fireTipColor, gradient);
     gl_FragColor = vec4(fireColor, alpha);
 }
+

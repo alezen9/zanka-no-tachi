@@ -5,6 +5,7 @@ import fragmentShader from "./fragment.glsl";
 import { AdditiveBlending, ShaderMaterial, Uniform, Vector2 } from "three";
 
 const PARTICLE_COUNT = 2500;
+const PARTICLE_SCALE_FACTOR = 250;
 
 const uniforms = {
   uTime: new Uniform(0),
@@ -16,7 +17,7 @@ const uniforms = {
 type Props = {
   name?: string;
   position?: PointsProps["position"];
-  scale?: number;
+  scale?: PointsProps["scale"];
   particleScale?: number;
   intensity?: number;
 };
@@ -37,15 +38,42 @@ const Fire = (props: Props) => {
     const intensities = new Float32Array(PARTICLE_COUNT);
 
     for (let i = 0; i < PARTICLE_COUNT; i++) {
-      const x = (Math.random() - 0.5) * 2;
-      const y = Math.random() * 2;
-      const z = (Math.random() - 0.5) * 2;
+      /**
+       * Positions
+       */
+      // Random angle and radius for circular distribution
+      const angle = Math.random() * Math.PI * 2;
+      const radius = Math.sqrt(Math.random()) * 1.5; // Random radius, sqrt for even distribution
+
+      // Convert polar coordinates to Cartesian for xz-plane
+      const x = Math.cos(angle) * radius;
+      const z = Math.sin(angle) * radius;
+      const y = Math.random() * 1.66; // y position remains the same
+
       positions.set([x, y, z], i * 3);
 
-      //   sizes[i] = Math.random() * 500 * particleScale;
-      // Larger size at lower y, smaller at higher y
-      const normalizedY = y / 2; // Normalize y to range [0, 1]
-      sizes[i] = normalizedY * 500 * particleScale; // Larger at y = 0, smaller at y = 2
+      /**
+       * Sizes
+       */
+
+      const coreX = 0;
+      const a = x - coreX;
+      const coreY = 0.2; // Core is slightly above the bottom
+      const b = y - coreY;
+      const coreZ = 0;
+      const c = z - coreZ;
+
+      // (Euclidean) distance from core
+      const distFromCore = Math.sqrt(a ** 2 + b ** 2 + c ** 2);
+      const maxDist = 2.5; // Maximum distance a particle can be from the core
+      const normalizedDist = Math.min(distFromCore / maxDist, 1); // Clamp to [0, 1]
+
+      // Larger size at the core, smaller size at the edges
+      sizes[i] = (1 - normalizedDist) * PARTICLE_SCALE_FACTOR * particleScale;
+
+      /**
+       * Intensity
+       */
       intensities[i] = intensity;
     }
 
@@ -79,7 +107,7 @@ const Fire = (props: Props) => {
   });
 
   return (
-    <points name={name} position={position} scale={[scale, scale * 0.7, scale]}>
+    <points name={name} position={position} scale={scale}>
       <bufferGeometry>
         <bufferAttribute
           attach="attributes-position"

@@ -1,9 +1,8 @@
-import { Grid, OrbitControls } from "@react-three/drei";
+import { OrbitControls } from "@react-three/drei";
 import { Perf } from "r3f-perf";
 import { useControls } from "leva";
 import FireArea from "./components/FireArea";
 import Yamamoto from "./components/Yamamoto";
-import Fire from "./components/Fire";
 
 const Experience = () => {
   const { isPerformancePanelVisible } = useControls("Monitoring", {
@@ -25,18 +24,17 @@ const Experience = () => {
         maxPolarAngle={Math.PI / 2.05}
         minPolarAngle={0}
       />
-      {/* <color attach="background" args={["black"]} /> */}
-      {/* <Grid
-        position={[0, -0.01, 0]}
-        args={[10.5, 10.5]}
-        cellColor="#F1F1F1"
-        sectionColor="#F8F8F8"
-        infiniteGrid
-        fadeStrength={10}
-      /> */}
-      <FireArea />
-      <Yamamoto />
-      {/* <Fire scale={3} particleScale={0.9} intensity={1.7} /> */}
+      <group position-y={-1}>
+        <mesh rotation-x={-Math.PI / 2} scale={100}>
+          <planeGeometry />
+          <meshStandardMaterial color="#000" />
+        </mesh>
+        <pointLight color="orange" intensity={500} position={[0, 3, -10]} />
+        <pointLight color="orange" intensity={200} position={[-10, 3, -4]} />
+        <pointLight color="orange" intensity={200} position={[10, 3, -4]} />
+        <FireArea />
+        <Yamamoto />
+      </group>
     </>
   );
 };

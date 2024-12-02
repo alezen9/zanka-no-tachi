@@ -2,122 +2,24 @@ import Fire from "../Fire";
 
 const FireArea = () => {
   return (
-    <group>
-      <Fire
-        position={[-5, 0, -7.5]}
-        scale={2.5}
-        particleScale={0.75}
-        intensity={2}
-      />
-      <Fire position={[0, 0, -8]} scale={3.1} particleScale={1} intensity={2} />
-      <Fire
-        position={[5, 0, -7.5]}
-        scale={2.5}
-        particleScale={0.75}
-        intensity={2}
-      />
-
-      {/** ========================================== */}
+    <group scale={[5, 6, 5]} position-y={-1}>
+      <Fire position={[0, 0, -3.5]} scale={[2, 1.2, 1]} particleScale={3.5} />
 
       <Fire
-        position={[-6.5, 0, -5]}
-        scale={2.2}
-        particleScale={0.9}
-        intensity={1.7}
+        position={[-1, 0, -2.5]}
+        scale={[1.5, 1.05, 1.5]}
+        particleScale={4}
       />
-      <Fire
-        position={[-2, 0, -5]}
-        scale={3}
-        particleScale={0.75}
-        intensity={2}
-      />
-      <Fire
-        position={[2, 0, -5]}
-        scale={3}
-        particleScale={0.75}
-        intensity={1.5}
-      />
-      <Fire
-        position={[6.5, 0, -5]}
-        scale={2.2}
-        particleScale={1}
-        intensity={1.8}
-      />
-
-      {/** ========================================== */}
+      <Fire position={[-2, 0, -1.5]} scale={[1, 0.9, 1]} particleScale={3} />
+      <Fire position={[-3, 0, -0.5]} scale={[1, 0.6, 2]} particleScale={2.5} />
 
       <Fire
-        position={[-8.5, 0, -2.5]}
-        scale={1.9}
-        particleScale={0.9}
-        intensity={1.5}
+        position={[1, 0, -2.5]}
+        scale={[1.5, 1.05, 1.5]}
+        particleScale={4}
       />
-      <Fire
-        position={[-4.5, 0, -2.5]}
-        scale={2.5}
-        particleScale={0.75}
-        intensity={1}
-      />
-      <Fire
-        position={[0, 0, -2.5]}
-        scale={2}
-        particleScale={0.8}
-        intensity={1.3}
-      />
-      <Fire
-        position={[4.5, 0, -2.5]}
-        scale={2.5}
-        particleScale={0.75}
-        intensity={1.3}
-      />
-      <Fire
-        position={[8.5, 0, -2.5]}
-        scale={1.9}
-        particleScale={1}
-        intensity={1.15}
-      />
-
-      {/** ========================================== */}
-
-      <Fire
-        position={[-7.5, 0, 0]}
-        scale={1.9}
-        particleScale={0.9}
-        intensity={1.5}
-      />
-      <Fire
-        position={[-3.5, 0, 0]}
-        scale={2.5}
-        particleScale={0.75}
-        intensity={1}
-      />
-      <Fire
-        position={[3.5, 0, 0]}
-        scale={2.5}
-        particleScale={0.75}
-        intensity={1.3}
-      />
-      <Fire
-        position={[7.5, 0, 0]}
-        scale={1.9}
-        particleScale={1}
-        intensity={1.15}
-      />
-
-      {/** ========================================== */}
-
-      <Fire
-        position={[-5.5, 0, 2]}
-        scale={1.9}
-        particleScale={0.9}
-        intensity={1.5}
-      />
-      <Fire
-        position={[5.5, 0, 2]}
-        scale={2.5}
-        particleScale={0.75}
-        intensity={1}
-      />
+      <Fire position={[2, 0, -1.5]} scale={[1, 0.9, 1]} particleScale={3} />
+      <Fire position={[3, 0, -0.5]} scale={[1, 0.6, 2]} particleScale={2.5} />
     </group>
   );
 };
