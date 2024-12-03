@@ -3,6 +3,9 @@ import { Perf } from "r3f-perf";
 import { useControls } from "leva";
 import FireArea from "./components/FireArea";
 import Yamamoto from "./components/Yamamoto";
+import Fire from "./components/Fire";
+import FireGPGPU from "./components/FireGPGPU";
+import Ship from "./components/Ship";
 
 const Experience = () => {
   const { isPerformancePanelVisible } = useControls("Monitoring", {
@@ -19,8 +22,8 @@ const Experience = () => {
         makeDefault
         enableDamping
         maxDistance={100}
-        minDistance={10}
-        enablePan={false}
+        minDistance={0.1}
+        enablePan={true}
         maxPolarAngle={Math.PI / 2.05}
         minPolarAngle={0}
       />
@@ -29,11 +32,14 @@ const Experience = () => {
           <planeGeometry />
           <meshStandardMaterial color="#000" />
         </mesh>
-        <pointLight color="orange" intensity={500} position={[0, 3, -10]} />
+        {/* <pointLight color="orange" intensity={500} position={[0, 3, -10]} />
         <pointLight color="orange" intensity={200} position={[-10, 3, -4]} />
         <pointLight color="orange" intensity={200} position={[10, 3, -4]} />
         <FireArea />
-        <Yamamoto />
+        <Yamamoto /> */}
+        {/* <Fire position={[-2, 0, 0]} />
+        <FireGPGPU position={[2, 0, 0]} /> */}
+        <Ship />
       </group>
     </>
   );
