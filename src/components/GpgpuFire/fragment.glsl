@@ -3,10 +3,7 @@
 #define COS_30_DEG 0.866025
 #define SIN_30_DEG 0.5
 
-
-varying vec3 vColor;
 varying vec3 vPosition;
-
 
 float getHexagonalMask() {
     // gl_PointCoord goes from (0, 0) at the bottom-left corner to (1, 1) at the top-right corner
@@ -60,7 +57,7 @@ void main()
     vec3 corePosition = vec3(0.0, 0.2, 0.0);
     float distFromCore = length(vPosition - corePosition);
 
-    float gradient = smoothstep(-0.5, 3.0, distFromCore);
+    float gradient = smoothstep(-0.5, 2.5, distFromCore);
 
     vec3 fireColor = mix(fireBaseColor, fireTipColor, gradient);
     fireColor *= 0.5; // Dim fire color to avoid overexposure due to blending
@@ -71,6 +68,6 @@ void main()
 
     gl_FragColor = vec4(fireColor, alpha);
 
-    #include <tonemapping_fragment>
-    #include <colorspace_fragment>
+    // #include <tonemapping_fragment>
+    // #include <colorspace_fragment>
 }
