@@ -1,11 +1,12 @@
 import { OrbitControls } from "@react-three/drei";
 import { Perf } from "r3f-perf";
 import { useControls } from "leva";
-import FireArea from "./components/FireArea";
-import Yamamoto from "./components/Yamamoto";
-import Fire from "./components/Fire";
-import FireGPGPU from "./components/FireGPGPU";
-import Ship from "./components/Ship";
+// import FireArea from "./components/FireArea";
+// import Yamamoto from "./components/Yamamoto";
+// import Fire from "./components/Fire";
+// import FireGPGPU from "./components/FireGPGPU";
+// import Ship from "./components/Ship";
+import GpgpuFire from "./components/GpgpuFire";
 
 const Experience = () => {
   const { isPerformancePanelVisible } = useControls("Monitoring", {
@@ -39,7 +40,15 @@ const Experience = () => {
         <Yamamoto /> */}
         {/* <Fire position={[-2, 0, 0]} />
         <FireGPGPU position={[2, 0, 0]} /> */}
-        <Ship />
+        {/* <Ship /> */}
+        <GpgpuFire />
+        {/* <Particles
+          focus={5.1}
+          speed={100}
+          aperture={1.8}
+          fov={20}
+          curl={0.25}
+        /> */}
       </group>
     </>
   );
