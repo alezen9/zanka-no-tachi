@@ -12,7 +12,6 @@ const App = () => {
         <Leva hidden={!isDebug} />
       </div>
       <Canvas
-        dpr={[1, 2]}
         camera={{
           fov: 50,
           near: 0.1,

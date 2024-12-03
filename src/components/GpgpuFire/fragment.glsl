@@ -60,7 +60,7 @@ void main()
     float gradient = smoothstep(-0.5, 2.5, distFromCore);
 
     vec3 fireColor = mix(fireBaseColor, fireTipColor, gradient);
-    fireColor *= 0.5; // Dim fire color to avoid overexposure due to blending
+    fireColor *= 0.35; // Dim fire color to avoid overexposure due to blending
 
     float shapeMask = getHexagonalMask();
 

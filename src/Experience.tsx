@@ -18,7 +18,7 @@ const Experience = () => {
       <OrbitControls
         makeDefault
         enableDamping
-        maxDistance={70}
+        maxDistance={60}
         minDistance={10}
         enablePan={false}
         maxPolarAngle={Math.PI / 2.05}

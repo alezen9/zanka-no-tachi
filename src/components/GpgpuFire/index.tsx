@@ -1,27 +1,15 @@
-import { MeshProps, PointsProps, useFrame } from "@react-three/fiber";
-import {
-  forwardRef,
-  useEffect,
-  useImperativeHandle,
-  useMemo,
-  useRef,
-} from "react";
-import {
-  AdditiveBlending,
-  MeshBasicMaterial,
-  ShaderMaterial,
-  Texture,
-  Uniform,
-  Vector2,
-} from "three";
+import { PointsProps, useFrame } from "@react-three/fiber";
+import { useEffect, useMemo, useRef } from "react";
+import { AdditiveBlending, ShaderMaterial, Uniform, Vector2 } from "three";
 import vertexShader from "./vertex.glsl";
 import fragmentShader from "./fragment.glsl";
 import useGPGpu from "./useGPGpu";
+import GpgpuDebug, { GpgpuDebugRef } from "./GpgpuDebug";
 
-const PARTICLES_COUNT = 2500;
+const PARTICLES_COUNT = 5000;
 
 const uniforms = {
-  uSizeScale: new Uniform(40),
+  uSizeScale: new Uniform(45),
   uResolution: new Uniform(new Vector2(0, 0)),
   uParticlesTexture: new Uniform(undefined),
 };
@@ -109,7 +97,6 @@ const GpgpuFire = (props: Props) => {
       uDeltaTime: new Uniform(deltaTime),
     });
 
-    // GPGPU update
     const texture = compute();
     particlesMaterial.current.uniforms.uParticlesTexture.value = texture;
   });
@@ -146,34 +133,3 @@ const GpgpuFire = (props: Props) => {
 };
 
 export default GpgpuFire;
-
-// ######################################################################################################
-// ######################################################################################################
-// ######################################################################################################
-// ######################################################################################################
-// ######################################################################################################
-// ######################################################################################################
-// ######################################################################################################
-// ######################################################################################################
-
-type GpgpuDebugRef = {
-  debug: (texture: Texture) => void;
-};
-
-const GpgpuDebug = forwardRef<GpgpuDebugRef, MeshProps>((props, outerRef) => {
-  const material = useRef<MeshBasicMaterial>(null);
-
-  useImperativeHandle(outerRef, () => ({
-    debug: (texture: Texture) => {
-      if (!material.current) return;
-      material.current.map = texture;
-    },
-  }));
-
-  return (
-    <mesh {...props}>
-      <planeGeometry />
-      <meshBasicMaterial ref={material} />
-    </mesh>
-  );
-});
