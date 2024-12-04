@@ -1,10 +1,16 @@
 import { PointsProps, useFrame } from "@react-three/fiber";
 import { useEffect, useMemo, useRef } from "react";
-import { AdditiveBlending, ShaderMaterial, Uniform, Vector2 } from "three";
+import {
+  AdditiveBlending,
+  ShaderMaterial,
+  Sphere,
+  Uniform,
+  Vector2,
+  Vector3,
+} from "three";
 import vertexShader from "./vertex.glsl";
 import fragmentShader from "./fragment.glsl";
 import useGPGpu from "./useGPGpu";
-import GpgpuDebug, { GpgpuDebugRef } from "./GpgpuDebug";
 
 const PARTICLES_COUNT = 5000;
 
@@ -24,7 +30,7 @@ type Props = {
 const GpgpuFire = (props: Props) => {
   const { name, particleScale = 1, scale = 1, position = [0, 0, 0] } = props;
   const particlesMaterial = useRef<ShaderMaterial>(null);
-  const gpgpuDebug = useRef<GpgpuDebugRef>(null);
+  const boundingSphere = useRef(new Sphere(new Vector3(0), 1));
   const { init, compute, updateUniforms, particleUvs, isActive } = useGPGpu({
     count: PARTICLES_COUNT,
   });
@@ -56,7 +62,7 @@ const GpgpuFire = (props: Props) => {
 
       // (Euclidean) distance from core
       const distFromCore = Math.sqrt(a ** 2 + b ** 2 + c ** 2);
-      const maxDist = 2.5; // Maximum distance a particle can be from the core
+      const maxDist = 2.2; // Maximum distance a particle can be from the core
       const normalizedDist = Math.min(distFromCore / maxDist, 1); // Clamp to [0, 1]
 
       // Larger size at the core, smaller size at the edges
@@ -69,8 +75,7 @@ const GpgpuFire = (props: Props) => {
 
   useEffect(() => {
     if (isActive) return;
-    const texture = init(initialData);
-    if (texture) gpgpuDebug.current?.debug(texture);
+    init(initialData);
   }, [init, initialData, isActive]);
 
   useEffect(() => {
@@ -105,6 +110,7 @@ const GpgpuFire = (props: Props) => {
     <group>
       <points name={name} position={position} scale={scale}>
         <bufferGeometry
+          boundingSphere={boundingSphere.current}
           drawRange={{
             start: 0,
             count: PARTICLES_COUNT,
@@ -127,7 +133,6 @@ const GpgpuFire = (props: Props) => {
           transparent
         />
       </points>
-      <GpgpuDebug visible={false} position-x={-4} ref={gpgpuDebug} />
     </group>
   );
 };
