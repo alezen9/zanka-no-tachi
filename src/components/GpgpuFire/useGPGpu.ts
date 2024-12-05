@@ -1,8 +1,20 @@
 import { useThree } from "@react-three/fiber";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { DataTexture, Uniform } from "three";
+import { DataTexture, Matrix4, Texture, Uniform, Vector3 } from "three";
 import { GPUComputationRenderer, Variable } from "three/examples/jsm/Addons.js";
 import gpgpuParticlesShader from "./gpgpu.fragment.glsl";
+
+type Uniforms = {
+  uConvergencePoint: Uniform<Vector3>;
+  uConvergenceSpeed: Uniform<number>;
+  uTime: Uniform<number>;
+  uMaxSprayDistance: Uniform<number>;
+  uBase: Uniform<Texture>;
+  uPhase: Uniform<number>; // 0 Shikai / 1 Bankai
+  uAnimationSpeed: Uniform<number>;
+  uConvergenceStartTime: Uniform<number>;
+  uSceneMatrixWorldInverse: Uniform<Matrix4>;
+};
 
 type UseGpgpuConfig = {
   count: number;
@@ -39,6 +51,13 @@ const useGPGpu = (config: UseGpgpuConfig) => {
     return uvs;
   }, [count, fboSize]);
 
+  const updateUniforms = useCallback((uniforms: Partial<Uniforms>) => {
+    if (!gpgpu.current) return;
+    for (const [name, value] of Object.entries(uniforms)) {
+      gpgpu.current.variable.material.uniforms[name] = value;
+    }
+  }, []);
+
   useEffect(() => {
     if (!gpgpu.current) {
       const gpgpuRenderer = new GPUComputationRenderer(
@@ -59,13 +78,21 @@ const useGPGpu = (config: UseGpgpuConfig) => {
         texture: gpgpuTexture,
         variable: gpgpuVariable,
       };
+
+      updateUniforms({
+        uConvergencePoint: new Uniform(new Vector3(1, 2, 2)),
+        uConvergenceSpeed: new Uniform(1),
+        uMaxSprayDistance: new Uniform(4),
+        uPhase: new Uniform(0),
+        uAnimationSpeed: new Uniform(10),
+      });
     }
     return () => {
       gpgpu.current?.renderer.dispose();
       gpgpu.current?.texture.dispose();
       gpgpu.current = null;
     };
-  }, [renderer, fboSize]);
+  }, [renderer, fboSize, updateUniforms]);
 
   const getTexture = useCallback(() => {
     if (!gpgpu.current) return;
@@ -86,23 +113,16 @@ const useGPGpu = (config: UseGpgpuConfig) => {
         return null;
       }
       gpgpu.current.texture.image.data.set(positions);
-      gpgpu.current.variable.material.uniforms.uBase = new Uniform(
-        gpgpu.current.texture,
-      );
+      updateUniforms({
+        uBase: new Uniform(gpgpu.current.texture),
+      });
       gpgpu.current.renderer.init();
       const texture = getTexture();
       setIsActive(true);
       return texture ?? null;
     },
-    [getTexture, isActive],
+    [getTexture, updateUniforms, isActive],
   );
-
-  const updateUniforms = useCallback((uniforms: Record<string, Uniform>) => {
-    if (!gpgpu.current) return;
-    for (const [name, value] of Object.entries(uniforms)) {
-      gpgpu.current.variable.material.uniforms[name] = value;
-    }
-  }, []);
 
   const compute = useCallback(() => {
     if (!gpgpu.current) {

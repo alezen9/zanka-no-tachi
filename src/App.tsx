@@ -16,7 +16,7 @@ const App = () => {
           fov: 50,
           near: 0.1,
           far: 150,
-          position: [0, 0, 15],
+          position: [0, 0, 12],
         }}
       >
         <Experience />

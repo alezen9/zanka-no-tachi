@@ -1,7 +1,21 @@
-import { PointsProps, useFrame } from "@react-three/fiber";
-import { useEffect, useMemo, useRef } from "react";
+import {
+  PointsProps,
+  ThreeEvent,
+  useFrame,
+  useThree,
+} from "@react-three/fiber";
+import {
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+} from "react";
 import {
   AdditiveBlending,
+  Group,
+  Matrix4,
+  Points,
   ShaderMaterial,
   Sphere,
   Uniform,
@@ -16,7 +30,7 @@ const PARTICLES_COUNT = 5000;
 
 const uniforms = {
   uSizeScale: new Uniform(45),
-  uResolution: new Uniform(new Vector2(0, 0)),
+  uResolution: new Uniform(new Vector2(0)),
   uParticlesTexture: new Uniform(undefined),
 };
 
@@ -27,13 +41,54 @@ type Props = {
   particleScale?: number;
 };
 
-const GpgpuFire = (props: Props) => {
+export type GpgpuFireRef = {
+  activateBankai: (matrix: Matrix4) => void;
+};
+
+const GpgpuFire = forwardRef<GpgpuFireRef, Props>((props, outerRef) => {
   const { name, particleScale = 1, scale = 1, position = [0, 0, 0] } = props;
   const particlesMaterial = useRef<ShaderMaterial>(null);
   const boundingSphere = useRef(new Sphere(new Vector3(0), 1));
+
+  const groupRef = useRef<Group>(null);
+  const pointsRef = useRef<Points>(null);
+
   const { init, compute, updateUniforms, particleUvs, isActive } = useGPGpu({
     count: PARTICLES_COUNT,
   });
+
+  const { clock } = useThree(({ scene, clock }) => ({ scene, clock }));
+
+  useImperativeHandle(
+    outerRef,
+    () => ({
+      activateBankai: (matrix) => {
+        // scene.updateMatrixWorld();
+        // const inverseSceneMatrixWorld = scene.matrixWorld.clone().invert();
+
+        // if (!groupRef.current) return;
+
+        // groupRef.current?.updateMatrixWorld();
+        // const inverseGroupInternal = groupRef.current?.matrixWorld
+        //   .clone()
+        //   .invert();
+
+        // if (!pointsRef.current) return;
+
+        // pointsRef.current.updateMatrixWorld();
+        // const inversePointsInternal = pointsRef.current?.matrixWorld
+        //   .clone()
+        //   .invert();
+        // console.log({ inverseGroupInternal, inversePointsInternal });
+        updateUniforms({
+          uPhase: new Uniform(1),
+          uSceneMatrixWorldInverse: new Uniform(matrix),
+          uConvergenceStartTime: new Uniform(clock.getElapsedTime()),
+        });
+      },
+    }),
+    [updateUniforms, clock],
+  );
 
   const initialData = useMemo(() => {
     const data = new Float32Array(PARTICLES_COUNT * 4);
@@ -93,13 +148,12 @@ const GpgpuFire = (props: Props) => {
     };
   }, []);
 
-  useFrame(({ clock }, deltaTime) => {
+  useFrame(({ clock }) => {
     if (!particlesMaterial.current || !isActive) return;
     const elapsedTime = clock.getElapsedTime();
 
     updateUniforms({
       uTime: new Uniform(elapsedTime),
-      uDeltaTime: new Uniform(deltaTime),
     });
 
     const texture = compute();
@@ -107,8 +161,8 @@ const GpgpuFire = (props: Props) => {
   });
 
   return (
-    <group>
-      <points name={name} position={position} scale={scale}>
+    <group ref={groupRef}>
+      <points name={name} position={position} scale={scale} ref={pointsRef}>
         <bufferGeometry
           boundingSphere={boundingSphere.current}
           drawRange={{
@@ -118,7 +172,7 @@ const GpgpuFire = (props: Props) => {
         >
           <bufferAttribute
             attach="attributes-aParticlesUv"
-            count={particleUvs.length}
+            count={PARTICLES_COUNT}
             array={particleUvs}
             itemSize={2}
           />
@@ -135,6 +189,6 @@ const GpgpuFire = (props: Props) => {
       </points>
     </group>
   );
-};
+});
 
 export default GpgpuFire;
