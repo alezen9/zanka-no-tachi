@@ -3,9 +3,10 @@
 #define COS_30_DEG 0.866025
 #define SIN_30_DEG 0.5
 
+// Varyings
 varying vec3 vPosition;
 
-float getHexagonalMask() {
+float getHexagonalMaskFactor() {
     // gl_PointCoord goes from (0, 0) at the bottom-left corner to (1, 1) at the top-right corner
     // Remap it so the origin is at the center, going from (-1, -1) to (1, 1)
     vec2 uv = gl_PointCoord * 2.0 - 1.0;
@@ -62,9 +63,9 @@ void main()
     vec3 fireColor = mix(fireBaseColor, fireTipColor, gradient);
     fireColor *= 0.3; // Dim fire color to avoid overexposure due to blending
 
-    float shapeMask = getHexagonalMask();
+    float maskFactor = getHexagonalMaskFactor();
 
-    float alpha = 1.0 - smoothstep(0.9, 1.0, shapeMask);
+    float alpha = 1.0 - smoothstep(0.9, 1.0, maskFactor);
 
     gl_FragColor = vec4(fireColor, alpha);
 }

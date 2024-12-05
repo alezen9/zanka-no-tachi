@@ -1,9 +1,10 @@
 import { PointsProps, useFrame } from "@react-three/fiber";
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useRef } from "react";
 import {
   AdditiveBlending,
   ShaderMaterial,
   Sphere,
+  Texture,
   Uniform,
   Vector2,
   Vector3,
@@ -16,52 +17,37 @@ const PARTICLES_COUNT = 5000;
 const PARTICLE_BASE_SCALE = 50;
 
 const uniforms = {
-  uSizeScale: new Uniform(27.5),
   uResolution: new Uniform(new Vector2(0)),
-  uParticlesTexture: new Uniform(undefined),
+  uParticlesCurrentPositions: new Uniform(new Texture()),
 };
 
-type Props = {
-  name?: string;
-  position?: PointsProps["position"];
-  scale?: PointsProps["scale"];
-};
-
-export type GpgpuFireRef = {
-  activateBankai: VoidFunction;
-};
+type Props = Pick<PointsProps, "name" | "position" | "scale">;
 
 const GpgpuFire = (props: Props) => {
-  const { name, scale = 1, position = [0, 0, 0] } = props;
+  const material = useRef<ShaderMaterial>(null);
 
-  const particlesMaterial = useRef<ShaderMaterial>(null);
-
-  const { init, compute, updateUniforms, particleUvs, isActive } = useGPGpu({
+  const {
+    initGpgpu,
+    computeGpgpu,
+    updateGpgpuUniforms,
+    particleUvs,
+    isGpgpuActive,
+  } = useGPGpu({
     count: PARTICLES_COUNT,
   });
 
-  const initialPositionsAndSize = useMemo(() => {
-    const data = new Float32Array(PARTICLES_COUNT * 4);
-    for (let i = 0; i < PARTICLES_COUNT; i++) {
-      const position = computeFireParticlePosition();
-      const size = computeFireParticleSize(position);
-      data.set([...position, size], i * 4);
-    }
-    return data;
-  }, []);
-
   useEffect(() => {
-    if (isActive) return;
-    init(initialPositionsAndSize);
-  }, [init, initialPositionsAndSize, isActive]);
+    const initialPositionsAndSize = computeInitialParticlePositions();
+    initGpgpu(initialPositionsAndSize);
+  }, [initGpgpu]);
 
   useEffect(() => {
     const observer = new ResizeObserver(() => {
-      if (!particlesMaterial.current) return;
+      if (!material.current) return;
       const dpr = Math.min(window.devicePixelRatio, 2);
       const x = window.innerWidth * dpr;
       const y = window.innerHeight * dpr;
-      particlesMaterial.current.uniforms.uResolution.value.set(x, y);
+      material.current.uniforms.uResolution.value.set(x, y);
     });
     observer.observe(document.body);
 
@@ -71,45 +57,43 @@ const GpgpuFire = (props: Props) => {
   }, []);
 
   useFrame(({ clock }) => {
-    if (!particlesMaterial.current || !isActive) return;
+    if (!material.current || !isGpgpuActive) return;
     const elapsedTime = clock.getElapsedTime();
 
-    updateUniforms({
+    updateGpgpuUniforms({
       uTime: new Uniform(elapsedTime),
     });
 
-    const texture = compute();
-    particlesMaterial.current.uniforms.uParticlesTexture.value = texture;
+    const texture = computeGpgpu();
+    material.current.uniforms.uParticlesCurrentPositions.value = texture;
   });
 
   return (
-    <group>
-      <points name={name} position={position} scale={scale}>
-        <bufferGeometry
-          boundingSphere={new Sphere(new Vector3(0), 1)}
-          drawRange={{
-            start: 0,
-            count: PARTICLES_COUNT,
-          }}
-        >
-          <bufferAttribute
-            attach="attributes-aParticlesUv"
-            count={PARTICLES_COUNT}
-            array={particleUvs}
-            itemSize={2}
-          />
-        </bufferGeometry>
-        <shaderMaterial
-          ref={particlesMaterial}
-          uniforms={uniforms}
-          vertexShader={vertexShader}
-          fragmentShader={fragmentShader}
-          depthWrite={false}
-          blending={AdditiveBlending}
-          transparent
+    <points {...props}>
+      <bufferGeometry
+        boundingSphere={new Sphere(new Vector3(0), 1)}
+        drawRange={{
+          start: 0,
+          count: PARTICLES_COUNT,
+        }}
+      >
+        <bufferAttribute
+          attach="attributes-aParticlesUv"
+          count={PARTICLES_COUNT}
+          array={particleUvs}
+          itemSize={2}
         />
-      </points>
-    </group>
+      </bufferGeometry>
+      <shaderMaterial
+        ref={material}
+        uniforms={uniforms}
+        vertexShader={vertexShader}
+        fragmentShader={fragmentShader}
+        depthWrite={false}
+        blending={AdditiveBlending}
+        transparent
+      />
+    </points>
   );
 };
 
@@ -145,4 +129,14 @@ const computeFireParticleSize = (position: [number, number, number]) => {
   // Larger size at the core, smaller size at the edges
   const size = (1 - normalizedDist) * PARTICLE_BASE_SCALE;
   return size;
+};
+
+const computeInitialParticlePositions = () => {
+  const data = new Float32Array(PARTICLES_COUNT * 4);
+  for (let i = 0; i < PARTICLES_COUNT; i++) {
+    const position = computeFireParticlePosition();
+    const size = computeFireParticleSize(position);
+    data.set([...position, size], i * 4);
+  }
+  return data;
 };
