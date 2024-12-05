@@ -36,10 +36,10 @@ const Experience = () => {
         minPolarAngle={0}
       />
       <group position-y={-1}>
-        {/* <mesh rotation-x={-Math.PI / 2} scale={100}>
+        <mesh rotation-x={-Math.PI / 2} scale={100}>
           <planeGeometry />
           <meshStandardMaterial color="#000" />
-        </mesh> */}
+        </mesh>
         <pointLight color="orange" intensity={500} position={[0, 3, -10]} />
         <pointLight color="orange" intensity={200} position={[-10, 3, -4]} />
         <pointLight color="orange" intensity={200} position={[10, 3, -4]} />

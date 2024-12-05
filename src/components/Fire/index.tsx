@@ -4,8 +4,8 @@ import vertexShader from "./vertex.glsl";
 import fragmentShader from "./fragment.glsl";
 import { AdditiveBlending, ShaderMaterial, Uniform, Vector2 } from "three";
 
-const PARTICLE_COUNT = 2500;
-const PARTICLE_SCALE_FACTOR = 250;
+const PARTICLE_COUNT = 5000;
+const PARTICLE_SCALE_FACTOR = 40;
 
 const uniforms = {
   uTime: new Uniform(0),
@@ -69,7 +69,8 @@ const Fire = (props: Props) => {
       const normalizedDist = Math.min(distFromCore / maxDist, 1); // Clamp to [0, 1]
 
       // Larger size at the core, smaller size at the edges
-      sizes[i] = (1 - normalizedDist) * PARTICLE_SCALE_FACTOR * particleScale;
+      sizes[i] =
+        (1 - normalizedDist) * 10 * PARTICLE_SCALE_FACTOR * particleScale;
 
       /**
        * Intensity

@@ -1,21 +1,7 @@
-import {
-  PointsProps,
-  ThreeEvent,
-  useFrame,
-  useThree,
-} from "@react-three/fiber";
-import {
-  forwardRef,
-  useEffect,
-  useImperativeHandle,
-  useMemo,
-  useRef,
-} from "react";
+import { PointsProps, useFrame } from "@react-three/fiber";
+import { useEffect, useMemo, useRef } from "react";
 import {
   AdditiveBlending,
-  Group,
-  Matrix4,
-  Points,
   ShaderMaterial,
   Sphere,
   Uniform,
@@ -27,9 +13,10 @@ import fragmentShader from "./fragment.glsl";
 import useGPGpu from "./useGPGpu";
 
 const PARTICLES_COUNT = 5000;
+const PARTICLE_BASE_SCALE = 50;
 
 const uniforms = {
-  uSizeScale: new Uniform(45),
+  uSizeScale: new Uniform(27.5),
   uResolution: new Uniform(new Vector2(0)),
   uParticlesTexture: new Uniform(undefined),
 };
@@ -38,100 +25,35 @@ type Props = {
   name?: string;
   position?: PointsProps["position"];
   scale?: PointsProps["scale"];
-  particleScale?: number;
 };
 
 export type GpgpuFireRef = {
-  activateBankai: (matrix: Matrix4) => void;
+  activateBankai: VoidFunction;
 };
 
-const GpgpuFire = forwardRef<GpgpuFireRef, Props>((props, outerRef) => {
-  const { name, particleScale = 1, scale = 1, position = [0, 0, 0] } = props;
-  const particlesMaterial = useRef<ShaderMaterial>(null);
-  const boundingSphere = useRef(new Sphere(new Vector3(0), 1));
+const GpgpuFire = (props: Props) => {
+  const { name, scale = 1, position = [0, 0, 0] } = props;
 
-  const groupRef = useRef<Group>(null);
-  const pointsRef = useRef<Points>(null);
+  const particlesMaterial = useRef<ShaderMaterial>(null);
 
   const { init, compute, updateUniforms, particleUvs, isActive } = useGPGpu({
     count: PARTICLES_COUNT,
   });
 
-  const { clock } = useThree(({ scene, clock }) => ({ scene, clock }));
-
-  useImperativeHandle(
-    outerRef,
-    () => ({
-      activateBankai: (matrix) => {
-        // scene.updateMatrixWorld();
-        // const inverseSceneMatrixWorld = scene.matrixWorld.clone().invert();
-
-        // if (!groupRef.current) return;
-
-        // groupRef.current?.updateMatrixWorld();
-        // const inverseGroupInternal = groupRef.current?.matrixWorld
-        //   .clone()
-        //   .invert();
-
-        // if (!pointsRef.current) return;
-
-        // pointsRef.current.updateMatrixWorld();
-        // const inversePointsInternal = pointsRef.current?.matrixWorld
-        //   .clone()
-        //   .invert();
-        // console.log({ inverseGroupInternal, inversePointsInternal });
-        updateUniforms({
-          uPhase: new Uniform(1),
-          uSceneMatrixWorldInverse: new Uniform(matrix),
-          uConvergenceStartTime: new Uniform(clock.getElapsedTime()),
-        });
-      },
-    }),
-    [updateUniforms, clock],
-  );
-
-  const initialData = useMemo(() => {
+  const initialPositionsAndSize = useMemo(() => {
     const data = new Float32Array(PARTICLES_COUNT * 4);
     for (let i = 0; i < PARTICLES_COUNT; i++) {
-      /**
-       * Positions
-       */
-      // Random angle and radius for circular distribution
-      const angle = Math.random() * Math.PI * 2;
-      const radius = Math.sqrt(Math.random()) * 1.5; // Random radius, sqrt for even distribution
-
-      // Convert polar coordinates to Cartesian for xz-plane
-      const x = Math.cos(angle) * radius;
-      const z = Math.sin(angle) * radius;
-      const y = Math.random() * 1.66; // y position remains the same
-
-      /**
-       * Sizes
-       */
-      const coreX = 0;
-      const a = x - coreX;
-      const coreY = 0.2; // Core is slightly above the bottom
-      const b = y - coreY;
-      const coreZ = 0;
-      const c = z - coreZ;
-
-      // (Euclidean) distance from core
-      const distFromCore = Math.sqrt(a ** 2 + b ** 2 + c ** 2);
-      const maxDist = 2.2; // Maximum distance a particle can be from the core
-      const normalizedDist = Math.min(distFromCore / maxDist, 1); // Clamp to [0, 1]
-
-      // Larger size at the core, smaller size at the edges
-      const size = (1 - normalizedDist) * 10 * particleScale;
-
-      data.set([x, y, z, size], i * 4);
+      const position = computeFireParticlePosition();
+      const size = computeFireParticleSize(position);
+      data.set([...position, size], i * 4);
     }
     return data;
-  }, [particleScale]);
+  }, []);
 
   useEffect(() => {
     if (isActive) return;
-    init(initialData);
-  }, [init, initialData, isActive]);
+    init(initialPositionsAndSize);
+  }, [init, initialPositionsAndSize, isActive]);
 
   useEffect(() => {
     const observer = new ResizeObserver(() => {
@@ -161,10 +83,10 @@ const GpgpuFire = forwardRef<GpgpuFireRef, Props>((props, outerRef) => {
   });
 
   return (
-    <group ref={groupRef}>
-      <points name={name} position={position} scale={scale} ref={pointsRef}>
+    <group>
+      <points name={name} position={position} scale={scale}>
         <bufferGeometry
-          boundingSphere={boundingSphere.current}
+          boundingSphere={new Sphere(new Vector3(0), 1)}
           drawRange={{
             start: 0,
             count: PARTICLES_COUNT,
@@ -189,6 +111,38 @@ const GpgpuFire = forwardRef<GpgpuFireRef, Props>((props, outerRef) => {
       </points>
     </group>
   );
-});
+};
 
 export default GpgpuFire;
+
+const computeFireParticlePosition = (): [number, number, number] => {
+  // Random angle and radius for circular distribution
+  const angle = Math.random() * Math.PI * 2;
+  const radius = Math.sqrt(Math.random()) * 1.5; // Random radius, sqrt for even distribution
+
+  // Convert polar coordinates to Cartesian for xz-plane
+  const x = Math.cos(angle) * radius;
+  const z = Math.sin(angle) * radius;
+  const y = Math.random() * 1.66; // y position remains the same
+
+  return [x, y, z];
+};
+
+const computeFireParticleSize = (position: [number, number, number]) => {
+  const [x, y, z] = position;
+  const coreX = 0;
+  const a = x - coreX;
+  const coreY = 0.2; // Core is slightly above the bottom
+  const b = y - coreY;
+  const coreZ = 0;
+  const c = z - coreZ;
+
+  // (Euclidean) distance from core
+  const distFromCore = Math.sqrt(a ** 2 + b ** 2 + c ** 2);
+  const maxDist = 2.2; // Maximum distance a particle can be from the core
+  const normalizedDist = Math.min(distFromCore / maxDist, 1); // Clamp to [0, 1]
+
+  // Larger size at the core, smaller size at the edges
+  const size = (1 - normalizedDist) * PARTICLE_BASE_SCALE;
+  return size;
+};

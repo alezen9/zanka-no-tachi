@@ -60,14 +60,11 @@ void main()
     float gradient = smoothstep(-0.5, 2.5, distFromCore);
 
     vec3 fireColor = mix(fireBaseColor, fireTipColor, gradient);
-    fireColor *= 0.35; // Dim fire color to avoid overexposure due to blending
+    fireColor *= 0.3; // Dim fire color to avoid overexposure due to blending
 
     float shapeMask = getHexagonalMask();
 
     float alpha = 1.0 - smoothstep(0.9, 1.0, shapeMask);
 
     gl_FragColor = vec4(fireColor, alpha);
-
-    // #include <tonemapping_fragment>
-    // #include <colorspace_fragment>
 }

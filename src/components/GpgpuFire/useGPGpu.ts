@@ -1,19 +1,18 @@
 import { useThree } from "@react-three/fiber";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { DataTexture, Matrix4, Texture, Uniform, Vector3 } from "three";
+import { DataTexture, Texture, Uniform } from "three";
 import { GPUComputationRenderer, Variable } from "three/examples/jsm/Addons.js";
 import gpgpuParticlesShader from "./gpgpu.fragment.glsl";
 
+const LOG_LEVEL = 0; // 0 = Inactive, 1 = Active
+
 type Uniforms = {
-  uConvergencePoint: Uniform<Vector3>;
-  uConvergenceSpeed: Uniform<number>;
   uTime: Uniform<number>;
-  uMaxSprayDistance: Uniform<number>;
-  uBase: Uniform<Texture>;
+  uParticlesInitialPositions: Uniform<Texture>;
   uPhase: Uniform<number>; // 0 Shikai / 1 Bankai
-  uAnimationSpeed: Uniform<number>;
-  uConvergenceStartTime: Uniform<number>;
-  uSceneMatrixWorldInverse: Uniform<Matrix4>;
+
+  // uConvergencePoint: Uniform<Vector3>;
+  // uExpandDistance: Uniform<number>;
 };
 
 type UseGpgpuConfig = {
@@ -28,28 +27,11 @@ type GPGpu = {
 
 const useGPGpu = (config: UseGpgpuConfig) => {
   const { count } = config;
-  const fboSize = useMemo(() => Math.ceil(Math.sqrt(count)), [count]);
   const renderer = useThree(({ gl }) => gl);
   const gpgpu = useRef<GPGpu | null>(null);
   const [isActive, setIsActive] = useState(false);
 
-  const particleUvs = useMemo(() => {
-    const uvs = new Float32Array(count * 2);
-
-    for (let y = 0; y < fboSize; y++) {
-      for (let x = 0; x < fboSize; x++) {
-        const i = y * fboSize + x;
-        const i2 = i * 2;
-        const uvX = (x + 0.5) / fboSize;
-        const uvY = (y + 0.5) / fboSize;
-
-        uvs[i2 + 0] = uvX;
-        uvs[i2 + 1] = uvY;
-      }
-    }
-
-    return uvs;
-  }, [count, fboSize]);
+  const particleUvs = useMemo(() => computeParticleUvs(count), [count]);
 
   const updateUniforms = useCallback((uniforms: Partial<Uniforms>) => {
     if (!gpgpu.current) return;
@@ -60,6 +42,7 @@ const useGPGpu = (config: UseGpgpuConfig) => {
 
   useEffect(() => {
     if (!gpgpu.current) {
+      const fboSize = computeFboSize(count);
       const gpgpuRenderer = new GPUComputationRenderer(
         fboSize,
         fboSize,
@@ -67,7 +50,7 @@ const useGPGpu = (config: UseGpgpuConfig) => {
       );
       const gpgpuTexture = gpgpuRenderer.createTexture();
       const gpgpuVariable = gpgpuRenderer.addVariable(
-        "uParticles",
+        "uParticlesCurrentPositions",
         gpgpuParticlesShader,
         gpgpuTexture,
       );
@@ -80,11 +63,7 @@ const useGPGpu = (config: UseGpgpuConfig) => {
       };
 
       updateUniforms({
-        uConvergencePoint: new Uniform(new Vector3(1, 2, 2)),
-        uConvergenceSpeed: new Uniform(1),
-        uMaxSprayDistance: new Uniform(4),
         uPhase: new Uniform(0),
-        uAnimationSpeed: new Uniform(10),
       });
     }
     return () => {
@@ -92,7 +71,7 @@ const useGPGpu = (config: UseGpgpuConfig) => {
       gpgpu.current?.texture.dispose();
       gpgpu.current = null;
     };
-  }, [renderer, fboSize, updateUniforms]);
+  }, [renderer, count, updateUniforms]);
 
   const getTexture = useCallback(() => {
     if (!gpgpu.current) return;
@@ -105,16 +84,16 @@ const useGPGpu = (config: UseGpgpuConfig) => {
   const init = useCallback(
     (positions: Float32Array) => {
       if (!gpgpu.current) {
-        console.error("[GPGPU] Init called before GPGpu Renderer creation");
+        logger.error("[GPGPU] Init called before GPGpu Renderer creation");
         return null;
       }
       if (isActive) {
-        console.warn("[GPGPU] Init skipped because GPGpu already active");
+        logger.warn("[GPGPU] Init skipped because GPGpu already active");
         return null;
       }
       gpgpu.current.texture.image.data.set(positions);
       updateUniforms({
-        uBase: new Uniform(gpgpu.current.texture),
+        uParticlesInitialPositions: new Uniform(gpgpu.current.texture),
       });
       gpgpu.current.renderer.init();
       const texture = getTexture();
@@ -126,11 +105,11 @@ const useGPGpu = (config: UseGpgpuConfig) => {
 
   const compute = useCallback(() => {
     if (!gpgpu.current) {
-      console.error("[GPGPU] Compute called before initialization");
+      logger.error("[GPGPU] Compute called before initialization");
       return null;
     }
     if (!isActive) {
-      console.warn("[GPGPU] Compute skipped because state is idle");
+      logger.warn("[GPGPU] Compute skipped because state is idle");
       return null;
     }
     gpgpu.current.renderer.compute();
@@ -148,3 +127,38 @@ const useGPGpu = (config: UseGpgpuConfig) => {
 };
 
 export default useGPGpu;
+
+const computeFboSize = (count: number) => Math.ceil(Math.sqrt(count));
+
+const computeParticleUvs = (count: number) => {
+  const fboSize = computeFboSize(count);
+  const uvs = new Float32Array(count * 2);
+  for (let y = 0; y < fboSize; y++) {
+    for (let x = 0; x < fboSize; x++) {
+      const i = y * fboSize + x;
+      const i2 = i * 2;
+
+      const uvX = (x + 0.5) / fboSize; // horizontal center of the pixel
+      const uvY = (y + 0.5) / fboSize; // vertical center of the pixel
+
+      uvs[i2 + 0] = uvX;
+      uvs[i2 + 1] = uvY;
+    }
+  }
+  return uvs;
+};
+
+const logger = Object.freeze({
+  error: (...args: Parameters<(typeof console)["error"]>) => {
+    if (LOG_LEVEL === 0) return;
+    logger.error(...args);
+  },
+  log: (...args: Parameters<(typeof console)["log"]>) => {
+    if (LOG_LEVEL === 0) return;
+    logger.log(...args);
+  },
+  warn: (...args: Parameters<(typeof console)["warn"]>) => {
+    if (LOG_LEVEL === 0) return;
+    logger.warn(...args);
+  },
+});
