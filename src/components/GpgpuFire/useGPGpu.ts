@@ -4,8 +4,6 @@ import { DataTexture, Texture, Uniform, WebGLRenderer } from "three";
 import { GPUComputationRenderer, Variable } from "three/examples/jsm/Addons.js";
 import gpgpuParticlesShader from "./gpgpu.fragment.glsl";
 
-const LOG_LEVEL = 0; // 0 = Inactive, 1 = Active
-
 const PARTICLES_CURRENT_POSITIONS_TEXTURE_UNIFORM_NAME =
   "uParticlesCurrentPositions";
 
@@ -50,6 +48,7 @@ const useGPGpu = (config: UseGpgpuConfig) => {
     return () => {
       gpgpu.current?.texture.dispose();
       gpgpu.current?.renderer.dispose();
+      gpgpu.current = null;
     };
   }, [renderer, count, updateUniforms]);
 
@@ -63,14 +62,7 @@ const useGPGpu = (config: UseGpgpuConfig) => {
 
   const init = useCallback(
     (positions: Float32Array) => {
-      if (!gpgpu.current) {
-        logger.error("[GPGPU] Init called before GPGpu Renderer creation");
-        return null;
-      }
-      if (isActive) {
-        logger.warn("[GPGPU] Init skipped because GPGpu already active");
-        return null;
-      }
+      if (!gpgpu.current || isActive) return;
       gpgpu.current.texture.image.data.set(positions);
       updateUniforms({
         uPhase: new Uniform(0),
@@ -83,17 +75,10 @@ const useGPGpu = (config: UseGpgpuConfig) => {
   );
 
   const compute = useCallback(() => {
-    if (!gpgpu.current) {
-      logger.error("[GPGPU] Compute called before initialization");
-      return null;
-    }
-    if (!isActive) {
-      logger.warn("[GPGPU] Compute skipped because state is idle");
-      return null;
-    }
+    if (!gpgpu.current || !isActive) return;
     gpgpu.current.renderer.compute();
     const texture = getTexture();
-    return texture ?? null;
+    return texture;
   }, [getTexture, isActive]);
 
   return {
@@ -147,18 +132,3 @@ const createGpgpu = (renderer: WebGLRenderer, fboSize: number) => {
     variable: gpgpuVariable,
   };
 };
-
-const logger = Object.freeze({
-  error: (...args: Parameters<(typeof console)["error"]>) => {
-    if (LOG_LEVEL === 0) return;
-    logger.error(...args);
-  },
-  log: (...args: Parameters<(typeof console)["log"]>) => {
-    if (LOG_LEVEL === 0) return;
-    logger.log(...args);
-  },
-  warn: (...args: Parameters<(typeof console)["warn"]>) => {
-    if (LOG_LEVEL === 0) return;
-    logger.warn(...args);
-  },
-});
