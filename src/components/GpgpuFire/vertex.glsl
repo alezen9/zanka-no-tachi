@@ -1,5 +1,3 @@
-#define SIZE_SCALE 27.5
-
 // Uniforms
 uniform vec2 uResolution;
 uniform sampler2D uParticlesCurrentPositions;
@@ -22,6 +20,6 @@ void main()
     vec4 projectedPosition = projectionMatrix * viewPosition;
     gl_Position = projectedPosition;
 
-    gl_PointSize = size * SIZE_SCALE;
+    gl_PointSize = size;
     gl_PointSize *= (1.0 / - viewPosition.z); // Fix perspective
 }

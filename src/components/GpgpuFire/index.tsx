@@ -14,7 +14,7 @@ import fragmentShader from "./fragment.glsl";
 import useGPGpu from "./useGPGpu";
 
 const PARTICLES_COUNT = 5000;
-const PARTICLE_BASE_SCALE = 50;
+const PARTICLE_SCALE = 1200;
 
 const uniforms = {
   uResolution: new Uniform(new Vector2(0)),
@@ -58,7 +58,7 @@ const GpgpuFire = (props: Props) => {
 
   useFrame(({ clock }) => {
     if (!material.current || !isGpgpuActive) return;
-    const elapsedTime = clock.getElapsedTime();
+    const elapsedTime = clock.getElapsedTime() * 0.02;
 
     updateGpgpuUniforms({
       uTime: new Uniform(elapsedTime),
@@ -99,6 +99,10 @@ const GpgpuFire = (props: Props) => {
 
 export default GpgpuFire;
 
+/**
+ * ############################## Helpers ##############################
+ */
+
 const computeFireParticlePosition = (): [number, number, number] => {
   // Random angle and radius for circular distribution
   const angle = Math.random() * Math.PI * 2;
@@ -127,7 +131,7 @@ const computeFireParticleSize = (position: [number, number, number]) => {
   const normalizedDist = Math.min(distFromCore / maxDist, 1); // Clamp to [0, 1]
 
   // Larger size at the core, smaller size at the edges
-  const size = (1 - normalizedDist) * PARTICLE_BASE_SCALE;
+  const size = (1 - normalizedDist) * PARTICLE_SCALE;
   return size;
 };
 
