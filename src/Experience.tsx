@@ -1,7 +1,7 @@
 import { OrbitControls } from "@react-three/drei";
 import { Perf } from "r3f-perf";
 import { useControls } from "leva";
-import FireArea from "./components/FireArea";
+import GpgpuFireArea from "./components/FireArea";
 import Yamamoto from "./components/Yamamoto";
 
 const Experience = () => {
@@ -29,11 +29,13 @@ const Experience = () => {
           <planeGeometry />
           <meshStandardMaterial color="#000" />
         </mesh>
-        <pointLight color="orange" intensity={500} position={[0, 3, -10]} />
-        <pointLight color="orange" intensity={200} position={[-10, 3, -4]} />
-        <pointLight color="orange" intensity={200} position={[10, 3, -4]} />
-        <FireArea />
-        <Yamamoto />
+        <group>
+          <pointLight color="orange" intensity={1000} position={[0, 5, -5]} />
+          <pointLight color="orange" intensity={200} position={[-7, 3, -1]} />
+          <pointLight color="orange" intensity={200} position={[7, 3, -1]} />
+          <GpgpuFireArea />
+          <Yamamoto />
+        </group>
       </group>
     </>
   );

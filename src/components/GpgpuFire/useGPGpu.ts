@@ -1,18 +1,25 @@
 import { useThree } from "@react-three/fiber";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { DataTexture, Texture, Uniform, WebGLRenderer } from "three";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { DataTexture, Uniform, WebGLRenderer } from "three";
 import { GPUComputationRenderer, Variable } from "three/examples/jsm/Addons.js";
 import gpgpuParticlesShader from "./gpgpu.fragment.glsl";
 
 const PARTICLES_CURRENT_POSITIONS_TEXTURE_UNIFORM_NAME =
   "uParticlesCurrentPositions";
 
+const uniforms = {
+  uTime: new Uniform(0),
+  uParticlesInitialPositions: new Uniform(new DataTexture()),
+  uPhase: new Uniform(0 as 0 | 1), // 0 Shikai / 1 Bankai
+  uSeed: new Uniform(0),
+};
+
+// Utility type to extract the wrapped type from Uniform<T>
+type UnwrapUniform<T> = T extends Uniform<infer U> ? U : never;
+
+// Create a mapped type based on the uniforms object
 type Uniforms = {
-  uTime: Uniform<number>;
-  uParticlesInitialPositions: Uniform<Texture>;
-  uPhase: Uniform<number>; // 0 Shikai / 1 Bankai
-  // uConvergencePoint: Uniform<Vector3>;
-  // uExpandDistance: Uniform<number>;
+  [K in keyof typeof uniforms]: UnwrapUniform<(typeof uniforms)[K]>;
 };
 
 type UseGpgpuConfig = {
@@ -31,12 +38,10 @@ const useGPGpu = (config: UseGpgpuConfig) => {
   const gpgpu = useRef<GPGpu | null>(null);
   const [isActive, setIsActive] = useState(false);
 
-  const particleUvs = useMemo(() => computeParticleUvs(count), [count]);
-
   const updateUniforms = useCallback((uniforms: Partial<Uniforms>) => {
     if (!gpgpu.current) return;
     for (const [name, value] of Object.entries(uniforms)) {
-      gpgpu.current.variable.material.uniforms[name] = value;
+      gpgpu.current.variable.material.uniforms[name].value = value;
     }
   }, []);
 
@@ -48,7 +53,7 @@ const useGPGpu = (config: UseGpgpuConfig) => {
     return () => {
       gpgpu.current?.texture.dispose();
       gpgpu.current?.renderer.dispose();
-      gpgpu.current = null;
+      // gpgpu.current = null;
     };
   }, [renderer, count, updateUniforms]);
 
@@ -65,8 +70,9 @@ const useGPGpu = (config: UseGpgpuConfig) => {
       if (!gpgpu.current || isActive) return;
       gpgpu.current.texture.image.data.set(positions);
       updateUniforms({
-        uPhase: new Uniform(0),
-        uParticlesInitialPositions: new Uniform(gpgpu.current.texture),
+        uPhase: 0,
+        uParticlesInitialPositions: gpgpu.current.texture,
+        uSeed: (Math.random() - 0.5) * 4,
       });
       gpgpu.current.renderer.init();
       setIsActive(true);
@@ -85,7 +91,6 @@ const useGPGpu = (config: UseGpgpuConfig) => {
     initGpgpu: init,
     updateGpgpuUniforms: updateUniforms,
     computeGpgpu: compute,
-    particleUvs,
     isGpgpuActive: isActive,
   };
 };
@@ -98,7 +103,7 @@ export default useGPGpu;
 
 const computeFboSize = (count: number) => Math.ceil(Math.sqrt(count));
 
-const computeParticleUvs = (count: number) => {
+export const computeParticleUvs = (count: number) => {
   const fboSize = computeFboSize(count);
   const uvs = new Float32Array(count * 2);
   for (let y = 0; y < fboSize; y++) {
@@ -124,6 +129,7 @@ const createGpgpu = (renderer: WebGLRenderer, fboSize: number) => {
     gpgpuParticlesShader,
     gpgpuTexture,
   );
+  gpgpuVariable.material.uniforms = uniforms;
   gpgpuRenderer.setVariableDependencies(gpgpuVariable, [gpgpuVariable]);
 
   return {

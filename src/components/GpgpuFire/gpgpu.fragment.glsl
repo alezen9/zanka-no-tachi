@@ -5,6 +5,7 @@
 uniform float uTime;
 uniform sampler2D uParticlesInitialPositions;
 uniform int uPhase; // 0 = Shikai (Fire), 1 = Bankai (Expand + Converge)
+uniform float uSeed;
 
 vec4 computeFireAnimation(vec2 uv) {
     vec4 particle = texture(uParticlesInitialPositions, uv);
@@ -17,7 +18,7 @@ vec4 computeFireAnimation(vec2 uv) {
     float lifetime = mod(intensity, LIFESPAN);
 
     // Base shaping, radial taper with noise
-    float taper = 1.0 - smoothstep(0.0, 2.1, position.y);
+    float taper = 1.0 - smoothstep(0.0, 2.3, position.y);
     taper += simplexNoise4d(vec4(position, intensity * 0.4)) * 0.1;
     position.x *= taper;
     position.z *= taper;
@@ -27,6 +28,15 @@ vec4 computeFireAnimation(vec2 uv) {
     position.x += noise * 0.1;
     position.y += noise * (sin(uTime * 0.3 + size * 5.0)) * 1.2;
     position.z += noise * 0.1;
+
+    // Add wavering motion only for particles above a certain height
+    float heightFactor = smoothstep(0.5, 1.5, position.y); // Gradually apply wavering above 0.5
+    float waveFrequency = 2.5 + uSeed * 0.5;               // Frequency varies per fire
+    float waveAmplitude = 0.15 + uSeed * 0.05;             // Amplitude varies per fire
+
+    float waveNoise = simplexNoise4d(vec4(position * 1.5 + uSeed, lifetime * 0.5));
+    position.x += sin(uTime * waveFrequency + position.y * 2.0 + waveNoise * 3.0 + uSeed * 10.0) * waveAmplitude * heightFactor;
+    position.z += cos(uTime * waveFrequency + position.x * 2.0 + waveNoise * 3.0 + uSeed * 15.0) * waveAmplitude * heightFactor;
 
     // Upward motion with looping
     position.y += mod(lifetime, LIFESPAN) * 0.5;
