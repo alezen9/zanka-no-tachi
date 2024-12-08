@@ -3,10 +3,12 @@ import { useEffect, useRef } from "react";
 import {
   AdditiveBlending,
   BufferGeometry,
+  Points,
   ShaderMaterial,
   Texture,
   Uniform,
   Vector2,
+  Vector3,
 } from "three";
 import vertexShader from "./vertex.glsl";
 import fragmentShader from "./fragment.glsl";
@@ -17,32 +19,62 @@ const uniforms = {
   uParticlesCurrentPositions: new Uniform(new Texture()),
 };
 
-type Props = Pick<PointsProps, "name" | "position" | "scale"> & {
-  geometry: BufferGeometry;
+enum Phase {
+  Shikai,
+  Bankai,
+}
+
+type GpgpuUniforms = {
+  uTime: number;
+  uDeltaTime: number;
+  uPhase: Phase;
+  uSeed: number;
+  uConvergencePosition: Vector3;
+};
+
+type Props = Pick<PointsProps, "name" | "position" | "scale" | "geometry"> & {
   particlesCount: number;
   initialPositionsAndSize: Float32Array;
+  isBankaiActive: boolean;
 };
 
 const GpgpuFire = (props: Props) => {
-  const { particlesCount, initialPositionsAndSize } = props;
-  const material = useRef<ShaderMaterial>(null);
+  const { particlesCount, initialPositionsAndSize, isBankaiActive, ...rest } =
+    props;
+  const pointsRef = useRef<Points<BufferGeometry, ShaderMaterial>>(null);
 
   const { initGpgpu, computeGpgpu, updateGpgpuUniforms, isGpgpuActive } =
-    useGPGpu({
+    useGPGpu<GpgpuUniforms>({
       count: particlesCount,
     });
 
   useEffect(() => {
-    initGpgpu(initialPositionsAndSize);
-  }, [initGpgpu, initialPositionsAndSize]);
+    if (isGpgpuActive) return;
+    initGpgpu(initialPositionsAndSize, {
+      uTime: 0,
+      uDeltaTime: 0,
+      uPhase: Phase.Shikai,
+      uSeed: (Math.random() - 0.5) * 4,
+      uConvergencePosition: new Vector3(0, 0, 0),
+    });
+  }, [initGpgpu, isGpgpuActive, initialPositionsAndSize]);
+
+  useEffect(() => {
+    const center = new Vector3(0, 0, 0);
+    const convergence = pointsRef.current!.worldToLocal(center);
+    updateGpgpuUniforms({
+      uPhase: isBankaiActive ? Phase.Bankai : Phase.Shikai,
+      uConvergencePosition: convergence,
+    });
+  }, [isBankaiActive, updateGpgpuUniforms]);
 
   useEffect(() => {
     const observer = new ResizeObserver(() => {
-      if (!material.current) return;
+      if (!pointsRef.current) return;
       const dpr = Math.min(window.devicePixelRatio, 2);
       const x = window.innerWidth * dpr;
       const y = window.innerHeight * dpr;
-      material.current.uniforms.uResolution.value.set(x, y);
+      pointsRef.current.material.uniforms.uResolution.value.set(x, y);
     });
     observer.observe(document.body);
 
@@ -51,22 +83,23 @@ const GpgpuFire = (props: Props) => {
     };
   }, []);
 
-  useFrame(({ clock }) => {
-    if (!material.current || !isGpgpuActive) return;
+  useFrame(({ clock }, delta) => {
+    if (!pointsRef.current || !isGpgpuActive) return;
     const elapsedTime = clock.getElapsedTime() * 0.02;
 
     updateGpgpuUniforms({
       uTime: elapsedTime,
+      uDeltaTime: delta,
     });
 
     const texture = computeGpgpu();
-    material.current.uniforms.uParticlesCurrentPositions.value = texture;
+    pointsRef.current.material.uniforms.uParticlesCurrentPositions.value =
+      texture;
   });
 
   return (
-    <points {...props}>
+    <points {...rest} ref={pointsRef}>
       <shaderMaterial
-        ref={material}
         uniforms={uniforms}
         vertexShader={vertexShader}
         fragmentShader={fragmentShader}

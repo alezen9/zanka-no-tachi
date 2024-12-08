@@ -1,8 +1,8 @@
 import { OrbitControls } from "@react-three/drei";
 import { Perf } from "r3f-perf";
 import { useControls } from "leva";
-import GpgpuFireArea from "./components/FireArea";
 import Yamamoto from "./components/Yamamoto";
+import Fire from "./components/Fire";
 
 const Experience = () => {
   const { isPerformancePanelVisible } = useControls("Monitoring", {
@@ -33,7 +33,7 @@ const Experience = () => {
           <pointLight color="orange" intensity={1000} position={[0, 5, -5]} />
           <pointLight color="orange" intensity={200} position={[-7, 3, -1]} />
           <pointLight color="orange" intensity={200} position={[7, 3, -1]} />
-          <GpgpuFireArea />
+          <Fire />
           <Yamamoto />
         </group>
       </group>
