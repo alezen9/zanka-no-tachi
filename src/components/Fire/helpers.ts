@@ -8,34 +8,86 @@ import {
 import { computeParticleUvs } from "./useGPGpu";
 
 const computeFireParticlePosition = (): Vector3Tuple => {
-  // Random angle and radius for circular distribution
-  const angle = Math.random() * Math.PI * 2;
-  const radius = Math.sqrt(Math.random()) * 1.5; // Random radius, sqrt for even distribution
+  const theta = Math.random() * Math.PI; // Angular position around the center
+  const phi = Math.random(); // Vertical fraction [0, 1]
+  const rho = (Math.random() - 0.5) * 2; // Radial offset [-1, 1]
 
-  // Convert polar coordinates to Cartesian for xz-plane
-  const x = Math.cos(angle) * radius;
-  const z = Math.sin(angle) * radius;
-  const y = Math.random() * 1.66; // y position remains the same
+  const t = theta / Math.PI; // Normalized range [0, 1]
+
+  // Spine path along XZ plane
+  const spineX = 2 * Math.cos(Math.PI * t);
+  const spineZ = 8 * (t - 0.5) ** 2 - 2;
+
+  // Tangent vector for the curve
+  const tangentX = -2 * Math.PI * Math.sin(Math.PI * t);
+  const tangentZ = 16 * (t - 0.5);
+
+  // Normalized normal vector (perpendicular to tangent)
+  const normalX = tangentZ;
+  const normalZ = -tangentX;
+  const normalLength = Math.sqrt(normalX ** 2 + normalZ ** 2);
+  const normalXNorm = normalX / normalLength;
+  const normalZNorm = normalZ / normalLength;
+
+  // Symmetrical spike pattern with slight elevation for edge spikes
+  const spikes = [
+    { position: 0.0, height: 0.02 }, // Starts slightly above ground
+    { position: 0.1, height: 0.1 },
+    { position: 0.25, height: 0.2 },
+    { position: 0.5, height: 0.25 }, // Tallest spike in the center
+  ];
+
+  // Symmetrize `t` to reflect around the center
+  const mirroredT = t <= 0.5 ? t : 1 - t;
+
+  // Find closest spike and calculate height offset
+  const closestSpike = spikes.reduce((prev, curr) =>
+    Math.abs(curr.position - mirroredT) < Math.abs(prev.position - mirroredT)
+      ? curr
+      : prev,
+  );
+  const spikeHeight = Math.max(
+    0,
+    closestSpike.height *
+      (1 - Math.abs(mirroredT - closestSpike.position) * 10),
+  );
+
+  // Vertical position with slight elevation for edge spikes
+  const baseHeight = 0.05 + 0.6 * (1 - Math.abs(t - 0.5) * 2); // Taller at the center
+  const y = phi * (baseHeight + spikeHeight);
+
+  // Radial (horizontal) offset
+  const horizontalFactor = 0.6 * (1 - phi); // Narrower at the top
+  const irregularity = (Math.random() - 0.5) * 0.2 * (1 - phi);
+  const radialOffset = rho * horizontalFactor + irregularity;
+
+  // Final position with radial offset applied
+  const x = spineX + radialOffset * normalXNorm;
+  const z = spineZ + radialOffset * normalZNorm;
 
   return [x, y, z];
 };
 
-const computeFireParticleSize = (position: Vector3Tuple, scale: number) => {
+const computeFireParticleSize = (
+  position: Vector3Tuple,
+  scale: number,
+): number => {
   const [x, y, z] = position;
-  const coreX = 0;
-  const a = x - coreX;
-  const coreY = 0.2; // Core is slightly above the bottom
-  const b = y - coreY;
-  const coreZ = 0;
-  const c = z - coreZ;
 
-  // (Euclidean) distance from core
-  const distFromCore = Math.sqrt(a ** 2 + b ** 2 + c ** 2);
-  const maxDist = 2.2; // Maximum distance a particle can be from the core
-  const normalizedDist = Math.min(distFromCore / maxDist, 1); // Clamp to [0, 1]
+  // Compute the distance from the central Y-axis
+  const distFromAxis = Math.sqrt(x * x + z * z);
 
-  // Larger size at the core, smaller size at the edges
-  const size = (1 - normalizedDist) * scale;
+  // Define the maximum distance at which particles are still "large"
+  const maxDist = 3.5; // Adjust this based on the flame's width
+  const normalizedDist = Math.min(distFromAxis / maxDist, 1);
+
+  // Compute the vertical shrinking factor
+  const maxHeight = 2.0; // Maximum height of the flame
+  const verticalFactor = Math.max(0, 1 - y / maxHeight); // Shrink size as y increases
+
+  // Combine the distance-based size and vertical shrinking
+  const size = (1 - normalizedDist) * verticalFactor * scale;
+
   return size;
 };
 

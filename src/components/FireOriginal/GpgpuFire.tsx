@@ -17,7 +17,6 @@ import useGPGpu from "./useGPGpu";
 const uniforms = {
   uResolution: new Uniform(new Vector2(0)),
   uParticlesCurrentPositions: new Uniform(new Texture()),
-  uTime: new Uniform(0),
 };
 
 enum Phase {
@@ -33,7 +32,7 @@ type GpgpuUniforms = {
   uConvergencePosition: Vector3;
 };
 
-type Props = PointsProps & {
+type Props = Pick<PointsProps, "name" | "position" | "scale" | "geometry"> & {
   particlesCount: number;
   initialPositionsAndSize: Float32Array;
   isBankaiActive: boolean;
@@ -61,7 +60,7 @@ const GpgpuFire = (props: Props) => {
   }, [initGpgpu, isGpgpuActive, initialPositionsAndSize]);
 
   useEffect(() => {
-    const center = new Vector3(0, 2, 0);
+    const center = new Vector3(0, 0, 0);
     const convergence = pointsRef.current!.worldToLocal(center);
     updateGpgpuUniforms({
       uPhase: isBankaiActive ? Phase.Bankai : Phase.Shikai,
@@ -87,7 +86,6 @@ const GpgpuFire = (props: Props) => {
   useFrame(({ clock }, delta) => {
     if (!pointsRef.current || !isGpgpuActive) return;
     const elapsedTime = clock.getElapsedTime() * 0.02;
-    pointsRef.current.material.uniforms.uTime.value = elapsedTime;
 
     updateGpgpuUniforms({
       uTime: elapsedTime,
