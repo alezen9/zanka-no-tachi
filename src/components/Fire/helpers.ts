@@ -2,52 +2,68 @@ import {
   BufferAttribute,
   BufferGeometry,
   Sphere,
+  Vector2Tuple,
   Vector3,
   Vector3Tuple,
 } from "three";
 import { computeParticleUvs } from "./useGPGpu";
 
-const computeFireParticlePosition = (): Vector3Tuple => {
-  const theta = Math.random() * Math.PI; // Angular position around the center
-  const phi = Math.random(); // Vertical fraction [0, 1]
-  const rho = (Math.random() - 0.5) * 2; // Radial offset [-1, 1]
+// Constants
+const SPINE_Z_OFFSET = -2;
+const BASE_HEIGHT_MIN = 0.05;
+const BASE_HEIGHT_MAX = 0.65;
 
-  const t = theta / Math.PI; // Normalized range [0, 1]
+// Helper Functions
+const computeSpinePosition = (normalizedTheta: number): Vector2Tuple => {
+  const x = 2 * Math.cos(Math.PI * normalizedTheta);
+  const z = 8 * (normalizedTheta - 0.5) ** 2 + SPINE_Z_OFFSET;
+  return [x, z];
+};
 
-  // Spine path along XZ plane
-  const spineX = 2 * Math.cos(Math.PI * t);
-  const spineZ = 8 * (t - 0.5) ** 2 - 2;
-
-  // Tangent vector for the curve
-  const tangentX = -2 * Math.PI * Math.sin(Math.PI * t);
-  const tangentZ = 16 * (t - 0.5);
-
-  // Normalized normal vector (perpendicular to tangent)
+const computeTangentAndNormal = (normalizedTheta: number): Vector2Tuple => {
+  const tangentX = -2 * Math.PI * Math.sin(Math.PI * normalizedTheta);
+  const tangentZ = 16 * (normalizedTheta - 0.5);
   const normalX = tangentZ;
   const normalZ = -tangentX;
   const normalLength = Math.sqrt(normalX ** 2 + normalZ ** 2);
-  const normalXNorm = normalX / normalLength;
-  const normalZNorm = normalZ / normalLength;
+  return [normalX / normalLength, normalZ / normalLength];
+};
 
-  const spikeHeight = 0;
+const computeBaseHeight = (normalizedTheta: number): number => {
+  const taperFactor = 1 - Math.abs(normalizedTheta - 0.5) * 2;
+  return BASE_HEIGHT_MIN + (BASE_HEIGHT_MAX - BASE_HEIGHT_MIN) * taperFactor;
+};
 
-  // Vertical position with slight elevation for edge spikes
-  const baseHeight = 0.05 + 0.6 * (1 - Math.abs(t - 0.5) * 2); // Taller at the center
-  const y = phi * (baseHeight + spikeHeight);
-
-  // Radial (horizontal) offset
-  const horizontalFactor = 0.6 * (1 - phi); // Narrower at the top
+const computeRadialOffset = (rho: number, phi: number): number => {
+  const horizontalFactor = 0.6 * (1 - phi);
   const irregularity = (Math.random() - 0.5) * 0.2 * (1 - phi);
-  const radialOffset = rho * horizontalFactor + irregularity;
+  return rho * horizontalFactor + irregularity;
+};
 
-  // Final position with radial offset applied
+// Main Function
+const computeFireParticlePosition = (): Vector3Tuple => {
+  const theta = Math.random() * Math.PI; // Random angle - used to move along the "spine" curve of the shape
+  const phi = Math.random(); // Rndom fraction - vertical fraction along the cross-section of the shape, phi=0 -> bottom, phi=1 -> top
+  const rho = (Math.random() - 0.5) * 2; // Radial offset - how far we move radially outward from the central spine
+
+  const normalizedTheta = theta / Math.PI; // Normalize theta to [0, 1]
+
+  // Compute spine curve and tangent/normal
+  const [spineX, spineZ] = computeSpinePosition(normalizedTheta);
+  const [normalXNorm, normalZNorm] = computeTangentAndNormal(normalizedTheta);
+
+  // Compute heights and radial offset
+  const baseHeight = computeBaseHeight(normalizedTheta);
+  const y = phi * baseHeight;
+  const radialOffset = computeRadialOffset(rho, phi);
+
+  // Final position
   const x = spineX + radialOffset * normalXNorm;
   const z = spineZ + radialOffset * normalZNorm;
 
   return [x, y, z];
 };
 
-// Custom smoothstep implementation
 const smoothstep = (edge0: number, edge1: number, x: number): number => {
   const t = Math.max(0, Math.min(1, (x - edge0) / (edge1 - edge0)));
   return t * t * (3 - 2 * t);

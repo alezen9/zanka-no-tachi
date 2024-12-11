@@ -46,14 +46,14 @@ const Experience = () => {
             intensity={10}
             position={[10, 10, 1]}
           />
-          <group position-x={0}>
+          <group>
             <Fire />
             <Yamamoto />
           </group>
-          <group position-x={-40}>
+          {/* <group position-x={-40}>
             <FireOriginal />
             <Yamamoto />
-          </group>
+          </group> */}
         </group>
       </group>
     </>

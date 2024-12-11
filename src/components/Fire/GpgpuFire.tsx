@@ -86,7 +86,7 @@ const GpgpuFire = (props: Props) => {
 
   useFrame(({ clock }, delta) => {
     if (!pointsRef.current || !isGpgpuActive) return;
-    const elapsedTime = clock.getElapsedTime() * 0.02;
+    const elapsedTime = clock.getElapsedTime();
     pointsRef.current.material.uniforms.uTime.value = elapsedTime;
 
     updateGpgpuUniforms({

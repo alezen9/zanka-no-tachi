@@ -1,11 +1,11 @@
-// Uniforms
+#define SCALE 1000.0
+
 uniform vec2 uResolution;
 uniform sampler2D uParticlesCurrentPositions;
 
-// Varyings
 varying vec3 vPosition;
+varying float vSize;
 
-// Attributes
 attribute vec2 aParticlesUv;
 
 void main()
@@ -14,12 +14,13 @@ void main()
     vec3 position = particle.xyz;
     float size = particle.w;
     vPosition = position;
+    vSize = size;
 
     vec4 modelPosition = modelMatrix * vec4(position, 1.0);
     vec4 viewPosition = viewMatrix * modelPosition;
     vec4 projectedPosition = projectionMatrix * viewPosition;
     gl_Position = projectedPosition;
 
-    gl_PointSize = size;
+    gl_PointSize = size * SCALE;
     gl_PointSize *= (1.0 / - viewPosition.z); // Fix perspective
 }

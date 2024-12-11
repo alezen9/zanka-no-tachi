@@ -6,8 +6,8 @@
 
 uniform float uTime;
 
-// Varyings
 varying vec3 vPosition;
+varying float vSize;
 
 float getHexagonalMaskFactor() {
     // gl_PointCoord goes from (0, 0) at the bottom-left corner to (1, 1) at the top-right corner
@@ -53,55 +53,27 @@ float getHexagonalMaskFactor() {
     return mask;
 }
 
-// void main()
-// {
-//     vec3 fireBaseColor = vec3(0.97, 0.97, 0.49); // Yellow/white (hottest)
-//     vec3 fireTipColor = vec3(1.0, 0.1, 0.0);  // Red (cooler)
-
-//     vec3 corePosition = vec3(0.0, 0.2, 0.0);
-//     float distFromCore = length(vPosition - corePosition);
-
-//     float gradient = smoothstep(-0.5, 2.5, distFromCore);
-
-//     vec3 fireColor = mix(fireBaseColor, fireTipColor, gradient);
-//     fireColor *= 0.3; // Dim fire color to avoid overexposure due to blending
-
-//     float maskFactor = getHexagonalMaskFactor();
-
-//     float alpha = 1.0 - smoothstep(0.9, 1.0, maskFactor);
-
-//     gl_FragColor = vec4(fireColor, alpha);
-// }
-
 void main()
 {
-    vec3 fireBaseColor = vec3(0.97, 0.97, 0.49);
-    vec3 fireTipColor = vec3(1.0, 0.1, 0.0);
+    // Define fire colors
+    vec3 coreColor = vec3(0.97, 0.91, 0.62);       // White for the core
+    vec3 fireBaseColor = vec3(0.97, 0.72, 0.39);  // Orange for mid-region
+    vec3 fireTipColor = vec3(0.75, 0.06, 0.0);  // Red for outer particles
 
-    // Define the core line parameters
-    float R = 0.05;     // Major radius of the donut's core line
-    float coreY = 0.25; // Vertical position of the core line
 
-    // Compute angle from the origin in XZ plane
-    vec2 xz = vPosition.xz;
-    float angle = atan(xz.y, xz.x);
+    // Core blending based on vSize
+    float coreFactor = smoothstep(0.8, 1.0, vSize); // Stronger influence for larger particles
+    vec3 blendedCoreColor = mix(fireBaseColor, coreColor, coreFactor);
 
-    // Ensure angle is within [0, PI]
-    // If angle < 0, add PI: negCorrection = 1 when angle<0, else 0
-    float negCorrection = 1.0 - step(0.0, angle); 
-    angle += negCorrection * PI;
-    angle = clamp(angle, 0.0, PI);
-
-    vec3 corePoint = vec3(R * cos(angle), coreY, R * sin(angle));
-    float distFromCore = length(vPosition - corePoint);
-
-    // Create gradient from core (yellow-white) to outside (red)
-    float gradient = smoothstep(-0.5, 3.25, distFromCore);
-    vec3 fireColor = mix(fireBaseColor, fireTipColor, gradient);
-    fireColor *= 0.65;
-
+    // Outer blending from the core to the tip
+    float outerFactor = smoothstep(0.0, 0.8, vSize); // Gradual influence for smaller particles
+    vec3 fireColor = mix(fireTipColor, blendedCoreColor, outerFactor);
+    fireColor *= 0.35;
+    
+    // Optional: Modify alpha using a mask
     float maskFactor = getHexagonalMaskFactor();
     float alpha = 1.0 - smoothstep(0.9, 1.0, maskFactor);
 
+    // Output the final color
     gl_FragColor = vec4(fireColor, alpha);
 }

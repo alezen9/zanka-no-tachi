@@ -1,6 +1,7 @@
 #include ../../utils/shaders/simplexNoise/simplexNoise.glsl
 
-#define LIFESPAN 0.6
+#define LIFESPAN 0.3
+#define SHIKAI_ANIMATION_SPEED 0.05
 
 uniform float uTime;
 uniform float uDeltaTime;
@@ -9,41 +10,6 @@ uniform int uPhase; // 0 = Shikai (Fire), 1 = Bankai (Expand + Converge)
 uniform float uSeed;
 uniform vec3 uConvergencePosition;
 
-// vec4 computeFireAnimation(vec2 uv) {
-//     vec4 particle = texture(uParticlesInitialPositions, uv);
-
-//     vec3 position = particle.xyz;
-//     float size = particle.w;
-
-//     // Modulo time to loop particle lifetime and reset them over time
-//     float intensity = (uTime + uv.x * 0.1 + uv.y * 0.1) * size * 0.02; // Add uv offsets for desync
-//     float lifetime = mod(intensity, LIFESPAN);
-
-//     // Noise-based displacement
-//     float baseNoise = simplexNoise4d(vec4(position * 3.0, lifetime * 0.1));
-//     float yDisplacement = sin(uTime * 0.3 + size * 5.0) * position.y * 1.2;
-//     position.x += baseNoise * 0.1;
-//     position.y += baseNoise * yDisplacement * 0.5;
-//     position.z += baseNoise * 0.1;
-
-//     // Add wavering motion only for particles above a certain height
-//     float heightFactor = smoothstep(0.1, 1.5, position.y); // Gradually apply wavering starting near ground
-//     float waveFrequency = 2.5 + uSeed * 0.5;               // Frequency varies per fire
-//     float waveAmplitude = 0.15 + uSeed * 0.05;             // Amplitude varies per fire
-
-//     float waveNoise = simplexNoise4d(vec4(position * 1.5 + uSeed, lifetime * 0.5));
-//     float waveOffset = waveNoise * 3.0 + uSeed * 10.0; // Shared offset for sin/cos
-//     position.x += sin(uTime * waveFrequency + position.y * 2.0 + waveOffset) * waveAmplitude * heightFactor;
-//     position.z += cos(uTime * waveFrequency + position.x * 2.0 + waveOffset) * waveAmplitude * heightFactor;
-
-//     // Upward motion with looping
-//     position.y += mod(lifetime, LIFESPAN) * 0.5;
-    
-//     float groundFade = smoothstep(0.0, 0.11, position.y);
-//     size *= groundFade;
-
-//     return vec4(position, size);
-// }
 
 vec4 computeFireAnimation(vec2 uv) {
     vec4 particle = texture(uParticlesInitialPositions, uv);
@@ -51,32 +17,46 @@ vec4 computeFireAnimation(vec2 uv) {
     vec3 position = particle.xyz;
     float size = particle.w;
 
-    // Modulo time to loop particle lifetime and reset them over time
-    float intensity = (uTime + uv.x * 0.1 + uv.y * 0.1) * size * 0.02; // Add uv offsets for desync
-    float lifetime = mod(intensity, LIFESPAN);
+    // Lifetime with per-particle offset for desync
+    float lifetimeOffset = uv.x * 0.3 + uv.y * 0.2 + uSeed * 0.1; // Random offset per particle
+    float lifetime = mod(uTime * SHIKAI_ANIMATION_SPEED + lifetimeOffset, LIFESPAN); // Looping lifetime
+    
+    float noise = simplexNoise4d(vec4(position * 7.0 + uSeed, lifetime * 0.2)); // Correct vec4 usage
+    float lifetimeFactor = smoothstep(0.0, 1.0, lifetime) * noise * 2.0; // Normalized lifetime progression
 
-    // Noise-based displacement
-    float baseNoise = simplexNoise4d(vec4(position * 4.5, lifetime * 0.1));
-    baseNoise = (baseNoise + 1.0) / 0.5;
-    baseNoise *= 0.2;
-    float yDisplacement = sin(uTime * 0.3 + size * 5.0) * position.y * 0.05;
-    float wobble = sin(uTime * 3.0 + uv.x * 10.0 + baseNoise * 5.0) * 0.3;
+    // Noise-based displacement for independent wobble
+    float baseNoise = simplexNoise4d(vec4(position * 3.0 + uSeed, lifetime * 0.2)); // Correct vec4 usage
+    position.x += baseNoise * 0.15 * lifetimeFactor;
+    position.z += baseNoise * 0.15 * lifetimeFactor;
 
-    position.x += baseNoise * 0.2 * wobble;
-    position.y += baseNoise * yDisplacement * 0.5;
-    position.z += baseNoise * 0.2 * wobble;
+    // Subtle vertical wavering motion
+    float waveFrequency = 1.0 + uSeed * 0.05; // Frequency variation
+    float waveAmplitude = 0.07 + uSeed * 0.01; // Amplitude variation
+    float waveOffset = simplexNoise3d(vec3(position.xz * 1.5 + uSeed, lifetime * 0.3));
+    position.x += sin(uTime * 0.2 * waveFrequency + position.y * 1.5 + waveOffset) * waveAmplitude;
+    position.z += cos(uTime * 0.3 * waveFrequency + position.x * 1.5 + waveOffset) * waveAmplitude;
 
-    // Compute upward movement limitation based on z value
-    float upwardMotion = mod(lifetime, LIFESPAN) * 0.5;
+    // Upward motion with per-particle height variation
+    float upwardSpeed = 0.3 + uv.x * 0.2 + uv.y * 0.1; // Random speed per particle
+    position.y += lifetimeFactor * 1.5 * upwardSpeed;
 
-    // Apply upward motion with limitation
-    position.y += (baseNoise * upwardMotion);
+    // Add spikes to certain particles
+    float spikeNoise = simplexNoise3d(vec3(uv * 10.0 + uSeed, lifetime * 0.1)); // Noise to select spike particles
+    float spikeFactor = step(0.85, spikeNoise); // Select particles with noise > 0.85
+    position.y += spikeFactor * 0.8 * smoothstep(0.8, 1.0, lifetimeFactor); // Add noticeable spikes
 
-    float groundFade = smoothstep(0.01, 0.1, position.y);
-    size *= groundFade;
+    // Reset particles seamlessly by wrapping lifetime progression
+    position.y += mod(lifetime, LIFESPAN); // Allow particles to exceed flat height limits
+
+    // Gradually reduce size as particles rise
+    size *= 1.0 - lifetimeFactor;
 
     return vec4(position, size);
 }
+
+
+
+
 
 
 vec4 computeConvergeAnimation(vec2 uv) {

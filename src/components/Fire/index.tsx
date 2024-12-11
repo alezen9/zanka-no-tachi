@@ -1,15 +1,23 @@
 import GpgpuFire from "./GpgpuFire";
-import { useState } from "react";
-import { createFireSharedBufferGeometryAndPositions } from "./helpers";
+import { useEffect, useState } from "react";
+import {
+  createFireSharedBufferGeometryAndPositions,
+  curveObject,
+} from "./helpers2";
+import { useThree } from "@react-three/fiber";
 
-const PARTICLES_COUNT = 5000 * 7;
-const PARTICLE_SCALE = 200;
+const PARTICLES_COUNT = 5000 * 15;
 
 const { geometry, initialPositionsAndSize } =
-  createFireSharedBufferGeometryAndPositions(PARTICLES_COUNT, PARTICLE_SCALE);
+  createFireSharedBufferGeometryAndPositions(PARTICLES_COUNT);
 
 const Fire = () => {
   const [isBankaiActive, setIsBankaiActive] = useState(false);
+  const scene = useThree(({ scene }) => scene);
+
+  useEffect(() => {
+    scene.add(curveObject);
+  }, [scene]);
 
   const onBankai = () => {
     setIsBankaiActive(true);
@@ -35,14 +43,16 @@ const Fire = () => {
           <meshStandardMaterial color="white" />
         </mesh>
       </group>
-      <GpgpuFire
-        geometry={geometry}
-        particlesCount={PARTICLES_COUNT}
-        initialPositionsAndSize={initialPositionsAndSize}
-        isBankaiActive={isBankaiActive}
-        scale={[9, 20, 13]}
-        position={[0, -0.75, 10]}
-      />
+      <group scale={1.25}>
+        <GpgpuFire
+          geometry={geometry}
+          particlesCount={PARTICLES_COUNT}
+          initialPositionsAndSize={initialPositionsAndSize}
+          isBankaiActive={isBankaiActive}
+          scale={[6, 9, 10]}
+          position={[0, -2, 7.5]}
+        />
+      </group>
     </>
   );
 };
