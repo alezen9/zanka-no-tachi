@@ -28,20 +28,32 @@ const Experience = () => {
       <group position-y={-1}>
         <mesh rotation-x={-Math.PI / 2} scale={100}>
           <planeGeometry />
-          <meshStandardMaterial color="#000" />
+          <meshStandardMaterial color={[5, 5, 5]} />
         </mesh>
         <group>
-          {/* <pointLight color="orange" intensity={1000} position={[0, 5, -5]} />
-          <pointLight color="orange" intensity={200} position={[-7, 3, -1]} />
-          <pointLight color="orange" intensity={200} position={[7, 3, -1]} /> */}
+          <pointLight
+            color="darkorange"
+            intensity={20}
+            position={[0, 10, -8]}
+          />
+          <pointLight
+            color="darkorange"
+            intensity={10}
+            position={[-10, 10, 1]}
+          />
+          <pointLight
+            color="darkorange"
+            intensity={10}
+            position={[10, 10, 1]}
+          />
           <group position-x={0}>
             <Fire />
             <Yamamoto />
           </group>
-          {/* <group position-x={-40}>
+          <group position-x={-40}>
             <FireOriginal />
             <Yamamoto />
-          </group> */}
+          </group>
         </group>
       </group>
     </>

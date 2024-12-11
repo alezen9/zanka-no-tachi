@@ -20,15 +20,14 @@ uniform vec3 uConvergencePosition;
 //     float lifetime = mod(intensity, LIFESPAN);
 
 //     // Noise-based displacement
-//     vec3 noisePosition = position * 3.0;
-//     float baseNoise = simplexNoise4d(vec4(noisePosition, lifetime * 0.1));
-//     float yDisplacement = sin(uTime * 0.3 + size * 5.0) * 1.2;
+//     float baseNoise = simplexNoise4d(vec4(position * 3.0, lifetime * 0.1));
+//     float yDisplacement = sin(uTime * 0.3 + size * 5.0) * position.y * 1.2;
 //     position.x += baseNoise * 0.1;
 //     position.y += baseNoise * yDisplacement * 0.5;
 //     position.z += baseNoise * 0.1;
 
 //     // Add wavering motion only for particles above a certain height
-//     float heightFactor = smoothstep(0.5, 1.5, position.y); // Gradually apply wavering above 0.5
+//     float heightFactor = smoothstep(0.1, 1.5, position.y); // Gradually apply wavering starting near ground
 //     float waveFrequency = 2.5 + uSeed * 0.5;               // Frequency varies per fire
 //     float waveAmplitude = 0.15 + uSeed * 0.05;             // Amplitude varies per fire
 
@@ -37,14 +36,11 @@ uniform vec3 uConvergencePosition;
 //     position.x += sin(uTime * waveFrequency + position.y * 2.0 + waveOffset) * waveAmplitude * heightFactor;
 //     position.z += cos(uTime * waveFrequency + position.x * 2.0 + waveOffset) * waveAmplitude * heightFactor;
 
-//     // Add subtle waving along the y-axis
-//     position.y += sin(uTime * 0.2 + lifetime * 3.0) * 0.1;
-
 //     // Upward motion with looping
 //     position.y += mod(lifetime, LIFESPAN) * 0.5;
-
-//     // Clamp y to prevent particles from going below 0
-//     position.y = max(position.y, 0.0);
+    
+//     float groundFade = smoothstep(0.0, 0.11, position.y);
+//     size *= groundFade;
 
 //     return vec4(position, size);
 // }
@@ -60,37 +56,27 @@ vec4 computeFireAnimation(vec2 uv) {
     float lifetime = mod(intensity, LIFESPAN);
 
     // Noise-based displacement
-    vec3 noisePosition = position * 3.0;
-    float baseNoise = simplexNoise4d(vec4(noisePosition, lifetime * 0.1));
-    float yDisplacement = sin(uTime * 0.3 + size * 5.0) * 1.2;
-    position.x += baseNoise * 0.1;
+    float baseNoise = simplexNoise4d(vec4(position * 4.5, lifetime * 0.1));
+    baseNoise = (baseNoise + 1.0) / 0.5;
+    baseNoise *= 0.2;
+    float yDisplacement = sin(uTime * 0.3 + size * 5.0) * position.y * 0.05;
+    float wobble = sin(uTime * 3.0 + uv.x * 10.0 + baseNoise * 5.0) * 0.3;
+
+    position.x += baseNoise * 0.2 * wobble;
     position.y += baseNoise * yDisplacement * 0.5;
-    position.z += baseNoise * 0.1;
+    position.z += baseNoise * 0.2 * wobble;
 
-    // Add wavering motion only for particles above a certain height
-    float heightFactor = smoothstep(0.1, 1.5, position.y); // Gradually apply wavering starting near ground
-    float waveFrequency = 2.5 + uSeed * 0.5;               // Frequency varies per fire
-    float waveAmplitude = 0.15 + uSeed * 0.05;             // Amplitude varies per fire
+    // Compute upward movement limitation based on z value
+    float upwardMotion = mod(lifetime, LIFESPAN) * 0.5;
 
-    float waveNoise = simplexNoise4d(vec4(position * 1.5 + uSeed, lifetime * 0.5));
-    float waveOffset = waveNoise * 3.0 + uSeed * 10.0; // Shared offset for sin/cos
-    position.x += sin(uTime * waveFrequency + position.y * 2.0 + waveOffset) * waveAmplitude * heightFactor;
-    position.z += cos(uTime * waveFrequency + position.x * 2.0 + waveOffset) * waveAmplitude * heightFactor;
+    // Apply upward motion with limitation
+    position.y += (baseNoise * upwardMotion);
 
-    // Add subtle waving along the y-axis
-    position.y += sin(uTime * 0.2 + lifetime * 3.0) * 0.1;
-
-    // Upward motion with looping
-    position.y += mod(lifetime, LIFESPAN) * 0.5;
-
-    // Clamp y and fade out near the ground
-    position.y = max(position.y, 0.0);
-    float groundFade = smoothstep(0.05, 0.1, position.y);
-    position *= groundFade;
+    float groundFade = smoothstep(0.01, 0.1, position.y);
+    size *= groundFade;
 
     return vec4(position, size);
 }
-
 
 
 vec4 computeConvergeAnimation(vec2 uv) {

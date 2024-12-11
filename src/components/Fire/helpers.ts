@@ -29,28 +29,7 @@ const computeFireParticlePosition = (): Vector3Tuple => {
   const normalXNorm = normalX / normalLength;
   const normalZNorm = normalZ / normalLength;
 
-  // Symmetrical spike pattern with slight elevation for edge spikes
-  const spikes = [
-    { position: 0.0, height: 0.02 }, // Starts slightly above ground
-    { position: 0.1, height: 0.1 },
-    { position: 0.25, height: 0.2 },
-    { position: 0.5, height: 0.25 }, // Tallest spike in the center
-  ];
-
-  // Symmetrize `t` to reflect around the center
-  const mirroredT = t <= 0.5 ? t : 1 - t;
-
-  // Find closest spike and calculate height offset
-  const closestSpike = spikes.reduce((prev, curr) =>
-    Math.abs(curr.position - mirroredT) < Math.abs(prev.position - mirroredT)
-      ? curr
-      : prev,
-  );
-  const spikeHeight = Math.max(
-    0,
-    closestSpike.height *
-      (1 - Math.abs(mirroredT - closestSpike.position) * 10),
-  );
+  const spikeHeight = 0;
 
   // Vertical position with slight elevation for edge spikes
   const baseHeight = 0.05 + 0.6 * (1 - Math.abs(t - 0.5) * 2); // Taller at the center
@@ -68,9 +47,17 @@ const computeFireParticlePosition = (): Vector3Tuple => {
   return [x, y, z];
 };
 
+// Custom smoothstep implementation
+const smoothstep = (edge0: number, edge1: number, x: number): number => {
+  const t = Math.max(0, Math.min(1, (x - edge0) / (edge1 - edge0)));
+  return t * t * (3 - 2 * t);
+};
+
 const computeFireParticleSize = (
   position: Vector3Tuple,
   scale: number,
+  minEdgeSize: number = 7, // Minimum size for edge particles
+  edgeDecreaseRate: number = 12.5, // Rate of size decrease for edges
 ): number => {
   const [x, y, z] = position;
 
@@ -81,12 +68,23 @@ const computeFireParticleSize = (
   const maxDist = 3.5; // Adjust this based on the flame's width
   const normalizedDist = Math.min(distFromAxis / maxDist, 1);
 
-  // Compute the vertical shrinking factor
-  const maxHeight = 2.0; // Maximum height of the flame
-  const verticalFactor = Math.max(0, 1 - y / maxHeight); // Shrink size as y increases
+  // Additional size decrease logic for particles closer to the edges (z < 0)
+  const edgeStart = -2; // Start decreasing size at z = -2
+  const edgeEnd = 0.0; // Fully decrease size at z = 0
 
-  // Combine the distance-based size and vertical shrinking
-  const size = (1 - normalizedDist) * verticalFactor * scale;
+  let edgeFactor = smoothstep(edgeEnd, edgeStart, z);
+  edgeFactor = Math.max(minEdgeSize, edgeFactor * edgeDecreaseRate);
+
+  // Compute the vertical shrinking factor
+  const maxHeight = 1.25; // Maximum height of the flame
+  const verticalFactor = Math.max(0.1, 1 - y / maxHeight); // Shrink size as y increases, minimum size 0.1
+
+  // New factor to progressively shrink size as y grows
+  const yShrinkFactor = 1 - Math.min(y / maxHeight, 1); // Reduces size linearly as y approaches maxHeight
+
+  // Combine the distance-based size, edge shrinking, and vertical shrinking
+  const size =
+    (1 - normalizedDist) * verticalFactor * edgeFactor * yShrinkFactor * scale;
 
   return size;
 };

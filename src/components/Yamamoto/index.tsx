@@ -11,7 +11,7 @@ const Yamamoto = () => {
 
   return (
     <mesh geometry={geometry} scale={scale}>
-      <meshBasicMaterial color="white" />
+      <meshStandardMaterial color="white" />
     </mesh>
   );
 };

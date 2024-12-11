@@ -2,8 +2,8 @@ import GpgpuFire from "./GpgpuFire";
 import { useState } from "react";
 import { createFireSharedBufferGeometryAndPositions } from "./helpers";
 
-const PARTICLES_COUNT = 5000 * 10;
-const PARTICLE_SCALE = 1400;
+const PARTICLES_COUNT = 5000 * 7;
+const PARTICLE_SCALE = 200;
 
 const { geometry, initialPositionsAndSize } =
   createFireSharedBufferGeometryAndPositions(PARTICLES_COUNT, PARTICLE_SCALE);
@@ -23,16 +23,16 @@ const Fire = () => {
     <>
       <mesh position={[0, 3, 0]}>
         <boxGeometry />
-        <meshBasicMaterial color="blue" />
+        <meshStandardMaterial color={[2, 2, 2]} />
       </mesh>
       <group position={[-1, 0, 1]}>
         <mesh onClick={onShikai}>
-          <planeGeometry />
-          <meshBasicMaterial color="orange" />
+          <boxGeometry />
+          <meshStandardMaterial color="red" />
         </mesh>
         <mesh onClick={onBankai} position-x={2}>
-          <planeGeometry />
-          <meshBasicMaterial color="white" />
+          <boxGeometry />
+          <meshStandardMaterial color="white" />
         </mesh>
       </group>
       <GpgpuFire
@@ -40,9 +40,8 @@ const Fire = () => {
         particlesCount={PARTICLES_COUNT}
         initialPositionsAndSize={initialPositionsAndSize}
         isBankaiActive={isBankaiActive}
-        scale={[8, 11, 12]}
-        position={[0, -1.75, 9]}
-        rotation-x={0.01}
+        scale={[9, 20, 13]}
+        position={[0, -0.75, 10]}
       />
     </>
   );

@@ -73,66 +73,33 @@ float getHexagonalMaskFactor() {
 //     gl_FragColor = vec4(fireColor, alpha);
 // }
 
-// void main()
-// {
-//     vec3 fireBaseColor = vec3(0.97, 0.97, 0.49);
-//     vec3 fireTipColor = vec3(1.0, 0.1, 0.0);
-
-//     // Define the core line parameters
-//     float R = -0.01;     // Major radius of the donut's core line
-//     float coreY = 0.25; // Vertical position of the core line
-
-//     // Compute angle from the origin in XZ plane
-//     vec2 xz = vPosition.xz;
-//     float angle = atan(xz.y, xz.x);
-
-//     // Ensure angle is within [0, PI]
-//     // If angle < 0, add PI: negCorrection = 1 when angle<0, else 0
-//     float negCorrection = 1.0 - step(0.0, angle); 
-//     angle += negCorrection * PI;
-//     angle = clamp(angle, 0.0, PI);
-
-//     vec3 corePoint = vec3(R * cos(angle), coreY, R * sin(angle));
-//     float distFromCore = length(vPosition - corePoint);
-
-//     // Create gradient from core (yellow-white) to outside (red)
-//     float gradient = smoothstep(0.0, 3.5, distFromCore);
-//     vec3 fireColor = mix(fireBaseColor, fireTipColor, gradient) * 0.55;
-
-//     float maskFactor = getHexagonalMaskFactor();
-//     float alpha = 1.0 - smoothstep(0.9, 1.0, maskFactor);
-
-//     gl_FragColor = vec4(fireColor, alpha);
-// }
-
-
 void main()
 {
-    vec3 fireBaseColor = vec3(0.97, 0.97, 0.49); // Yellow (near the core)
-    vec3 fireOuterColor = vec3(1.0, 0.1, 0.0);   // Red (outermost particles)
+    vec3 fireBaseColor = vec3(0.97, 0.97, 0.49);
+    vec3 fireTipColor = vec3(1.0, 0.1, 0.0);
 
-    // Define the core position and parameters
-    float coreY = 0.2;                           // Approximate height of the core
-    vec3 corePoint = vec3(0.0, coreY, 0.0);      // Core point in the fire structure
+    // Define the core line parameters
+    float R = 0.05;     // Major radius of the donut's core line
+    float coreY = 0.25; // Vertical position of the core line
 
-    // Distance from the core
-    float coreDistXZ = length(vPosition.xz);     // Distance in XZ plane from the center
-    float coreDistY = abs(vPosition.y - coreY);  // Vertical distance from the core's Y height
+    // Compute angle from the origin in XZ plane
+    vec2 xz = vPosition.xz;
+    float angle = atan(xz.y, xz.x);
 
-    // Combined distance factor for the gradient
-    float coreDist = length(vec2(coreDistXZ, coreDistY));
+    // Ensure angle is within [0, PI]
+    // If angle < 0, add PI: negCorrection = 1 when angle<0, else 0
+    float negCorrection = 1.0 - step(0.0, angle); 
+    angle += negCorrection * PI;
+    angle = clamp(angle, 0.0, PI);
 
-    // Gradient factor: Closer to the core = yellowish, Farther out = reddish
-    float gradient = smoothstep(-0.5, 4.0, coreDist); // Adjust range for more control
-    vec3 fireColor = mix(fireBaseColor, fireOuterColor, gradient);
+    vec3 corePoint = vec3(R * cos(angle), coreY, R * sin(angle));
+    float distFromCore = length(vPosition - corePoint);
 
-    // Slight flickering for realism (optional)
-    float flicker = 0.85 + 0.15 * sin(uTime * 10.0 + vPosition.y * 5.0);
-    fireColor *= flicker;
-    fireColor *= 0.35; // Boost intensity
+    // Create gradient from core (yellow-white) to outside (red)
+    float gradient = smoothstep(-0.5, 3.25, distFromCore);
+    vec3 fireColor = mix(fireBaseColor, fireTipColor, gradient);
+    fireColor *= 0.65;
 
-
-    // Mask factor to control transparency
     float maskFactor = getHexagonalMaskFactor();
     float alpha = 1.0 - smoothstep(0.9, 1.0, maskFactor);
 
