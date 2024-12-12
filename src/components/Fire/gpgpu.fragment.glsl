@@ -26,12 +26,12 @@ vec4 computeFireAnimation(vec2 uv) {
 
     // Noise-based displacement for independent wobble
     float baseNoise = simplexNoise4d(vec4(position * 3.0 + uSeed, lifetime * 0.2));
-    position.x += baseNoise * 0.35 * lifetimeFactor;
-    position.z += baseNoise * 0.35 * lifetimeFactor;
+    position.x += baseNoise * 0.05 * position.y * lifetimeFactor;
+    position.z += baseNoise * 0.05 * position.y * lifetimeFactor;
 
     // Subtle vertical wavering motion
     float waveFrequency = 1.0 + uSeed * 0.05; // Frequency variation
-    float waveAmplitude = 0.07 + uSeed * 0.01; // Amplitude variation
+    float waveAmplitude = 0.07 * position.y + uSeed * 0.01; // Amplitude variation
     float waveOffset = simplexNoise3d(vec3(position.xz * 1.5 + uSeed, lifetime * 10.3));
     position.x += sin(uTime * 0.2 * waveFrequency + position.y * 1.5 + waveOffset) * waveAmplitude;
     position.z += cos(uTime * 0.3 * waveFrequency + position.x * 1.5 + waveOffset) * waveAmplitude;

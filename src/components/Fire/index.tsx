@@ -28,13 +28,11 @@ const Fire = () => {
           <meshStandardMaterial color="white" />
         </mesh>
       </group>
-      <group scale={2}>
-        <GpgpuFire
-          isBankaiActive={isBankaiActive}
-          scale={[6, 9, 10]}
-          position={[0, -2, 7.5]}
-        />
-      </group>
+      <GpgpuFire
+        isBankaiActive={isBankaiActive}
+        scale={[12, 18, 20]}
+        position={[0, -2, 7.5]}
+      />
     </>
   );
 };

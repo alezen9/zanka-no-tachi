@@ -57,13 +57,13 @@ void main()
 {
     // Define fire colors
     vec3 fireCoreColor = vec3(0.58, 0.55, 0.4);       // White for the core
-    vec3 fireTipColor = vec3(0.49, 0.18, 0.07);  // Red for outer particles
+    vec3 fireTipColor = vec3(0.76, 0.27, 0.09);  // Red for outer particles
 
 
-    float coreFactor = smoothstep(1.5, 0.1, vSize);
+    float coreFactor = smoothstep(2.0, 0.0, vSize);
     vec3 fireColor = mix(fireCoreColor, fireTipColor, coreFactor);
 
-    fireColor *= 0.45;
+    fireColor *= 0.2;
     
     float maskFactor = getHexagonalMaskFactor();
     float alpha = 1.0 - smoothstep(0.9, 1.0, maskFactor);

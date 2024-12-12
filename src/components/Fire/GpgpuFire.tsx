@@ -16,7 +16,7 @@ import fragmentShader from "./fragment.glsl";
 import useGPGpu, { computeParticleUvs } from "./useGPGpu";
 import { computeInitialParticlePositionsAndSize } from "./helpers";
 
-const PARTICLES_COUNT = 5000 * 15;
+const PARTICLES_COUNT = 5000 * 25;
 
 const particleUvs = computeParticleUvs(PARTICLES_COUNT);
 const initialPositionsAndSize =
