@@ -36,7 +36,7 @@ const Experience = () => {
             intensity={20}
             position={[0, 10, -8]}
           />
-          <pointLight
+          {/* <pointLight
             color="darkorange"
             intensity={10}
             position={[-10, 10, 1]}
@@ -45,15 +45,15 @@ const Experience = () => {
             color="darkorange"
             intensity={10}
             position={[10, 10, 1]}
-          />
-          <group>
+          /> */}
+          <group position-x={20}>
             <Fire />
             <Yamamoto />
           </group>
-          {/* <group position-x={-40}>
+          <group position-x={-20}>
             <FireOriginal />
             <Yamamoto />
-          </group> */}
+          </group>
         </group>
       </group>
     </>

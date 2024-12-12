@@ -1,7 +1,7 @@
 #include ../../utils/shaders/simplexNoise/simplexNoise.glsl
 
 #define LIFESPAN 0.3
-#define SHIKAI_ANIMATION_SPEED 0.05
+#define SHIKAI_ANIMATION_SPEED 0.075
 
 uniform float uTime;
 uniform float uDeltaTime;
@@ -21,18 +21,18 @@ vec4 computeFireAnimation(vec2 uv) {
     float lifetimeOffset = uv.x * 0.3 + uv.y * 0.2 + uSeed * 0.1; // Random offset per particle
     float lifetime = mod(uTime * SHIKAI_ANIMATION_SPEED + lifetimeOffset, LIFESPAN); // Looping lifetime
     
-    float noise = simplexNoise4d(vec4(position * 7.0 + uSeed, lifetime * 0.2)); // Correct vec4 usage
+    float noise = simplexNoise4d(vec4(position * 7.0 + uSeed, lifetime * 0.2));
     float lifetimeFactor = smoothstep(0.0, 1.0, lifetime) * noise * 2.0; // Normalized lifetime progression
 
     // Noise-based displacement for independent wobble
-    float baseNoise = simplexNoise4d(vec4(position * 3.0 + uSeed, lifetime * 0.2)); // Correct vec4 usage
-    position.x += baseNoise * 0.15 * lifetimeFactor;
-    position.z += baseNoise * 0.15 * lifetimeFactor;
+    float baseNoise = simplexNoise4d(vec4(position * 3.0 + uSeed, lifetime * 0.2));
+    position.x += baseNoise * 0.35 * lifetimeFactor;
+    position.z += baseNoise * 0.35 * lifetimeFactor;
 
     // Subtle vertical wavering motion
     float waveFrequency = 1.0 + uSeed * 0.05; // Frequency variation
     float waveAmplitude = 0.07 + uSeed * 0.01; // Amplitude variation
-    float waveOffset = simplexNoise3d(vec3(position.xz * 1.5 + uSeed, lifetime * 0.3));
+    float waveOffset = simplexNoise3d(vec3(position.xz * 1.5 + uSeed, lifetime * 10.3));
     position.x += sin(uTime * 0.2 * waveFrequency + position.y * 1.5 + waveOffset) * waveAmplitude;
     position.z += cos(uTime * 0.3 * waveFrequency + position.x * 1.5 + waveOffset) * waveAmplitude;
 
@@ -53,10 +53,6 @@ vec4 computeFireAnimation(vec2 uv) {
 
     return vec4(position, size);
 }
-
-
-
-
 
 
 vec4 computeConvergeAnimation(vec2 uv) {

@@ -5,6 +5,7 @@ import {
   BufferGeometry,
   Points,
   ShaderMaterial,
+  Sphere,
   Texture,
   Uniform,
   Vector2,
@@ -12,7 +13,14 @@ import {
 } from "three";
 import vertexShader from "./vertex.glsl";
 import fragmentShader from "./fragment.glsl";
-import useGPGpu from "./useGPGpu";
+import useGPGpu, { computeParticleUvs } from "./useGPGpu";
+import { computeInitialParticlePositionsAndSize } from "./helpers";
+
+const PARTICLES_COUNT = 5000 * 15;
+
+const particleUvs = computeParticleUvs(PARTICLES_COUNT);
+const initialPositionsAndSize =
+  computeInitialParticlePositionsAndSize(PARTICLES_COUNT);
 
 const uniforms = {
   uResolution: new Uniform(new Vector2(0)),
@@ -34,19 +42,16 @@ type GpgpuUniforms = {
 };
 
 type Props = PointsProps & {
-  particlesCount: number;
-  initialPositionsAndSize: Float32Array;
   isBankaiActive: boolean;
 };
 
 const GpgpuFire = (props: Props) => {
-  const { particlesCount, initialPositionsAndSize, isBankaiActive, ...rest } =
-    props;
+  const { isBankaiActive, ...rest } = props;
   const pointsRef = useRef<Points<BufferGeometry, ShaderMaterial>>(null);
 
   const { initGpgpu, computeGpgpu, updateGpgpuUniforms, isGpgpuActive } =
     useGPGpu<GpgpuUniforms>({
-      count: particlesCount,
+      count: PARTICLES_COUNT,
     });
 
   useEffect(() => {
@@ -58,7 +63,7 @@ const GpgpuFire = (props: Props) => {
       uSeed: (Math.random() - 0.5) * 4,
       uConvergencePosition: new Vector3(0, 0, 0),
     });
-  }, [initGpgpu, isGpgpuActive, initialPositionsAndSize]);
+  }, [initGpgpu, isGpgpuActive]);
 
   useEffect(() => {
     const center = new Vector3(0, 2, 0);
@@ -101,6 +106,20 @@ const GpgpuFire = (props: Props) => {
 
   return (
     <points {...rest} ref={pointsRef}>
+      <bufferGeometry
+        boundingSphere={new Sphere(new Vector3(0), 1)}
+        drawRange={{
+          start: 0,
+          count: PARTICLES_COUNT,
+        }}
+      >
+        <bufferAttribute
+          attach="attributes-aParticlesUv"
+          count={PARTICLES_COUNT}
+          array={particleUvs}
+          itemSize={2}
+        />
+      </bufferGeometry>
       <shaderMaterial
         uniforms={uniforms}
         vertexShader={vertexShader}

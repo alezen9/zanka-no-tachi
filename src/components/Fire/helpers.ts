@@ -1,137 +1,77 @@
-import {
-  BufferAttribute,
-  BufferGeometry,
-  Sphere,
-  Vector2Tuple,
-  Vector3,
-  Vector3Tuple,
-} from "three";
-import { computeParticleUvs } from "./useGPGpu";
+import { Vector3, CatmullRomCurve3, MathUtils } from "three";
 
-// Constants
-const SPINE_Z_OFFSET = -2;
-const BASE_HEIGHT_MIN = 0.05;
-const BASE_HEIGHT_MAX = 0.65;
+const BASE_HEIGHT_MIN = 0;
+const BASE_HEIGHT_MAX = 1.5;
+const MIN_PARTICLE_SIZE = 0.1;
+const MAX_PARTICLE_SIZE = 1;
 
-// Helper Functions
-const computeSpinePosition = (normalizedTheta: number): Vector2Tuple => {
-  const x = 2 * Math.cos(Math.PI * normalizedTheta);
-  const z = 8 * (normalizedTheta - 0.5) ** 2 + SPINE_Z_OFFSET;
-  return [x, z];
-};
+// U-shaped control points
+const SPINE_CONTROL_POINTS = [
+  new Vector3(-1.75, 0.15, 0),
+  new Vector3(-1.6, 0.1, -1),
+  new Vector3(0, 0.025, -1.75),
+  new Vector3(1.6, 0.1, -1),
+  new Vector3(1.75, 0.15, 0),
+];
 
-const computeTangentAndNormal = (normalizedTheta: number): Vector2Tuple => {
-  const tangentX = -2 * Math.PI * Math.sin(Math.PI * normalizedTheta);
-  const tangentZ = 16 * (normalizedTheta - 0.5);
-  const normalX = tangentZ;
-  const normalZ = -tangentX;
-  const normalLength = Math.sqrt(normalX ** 2 + normalZ ** 2);
-  return [normalX / normalLength, normalZ / normalLength];
-};
+// Create the Catmull-Rom spline curve
+const fireCurve = new CatmullRomCurve3(
+  SPINE_CONTROL_POINTS,
+  false,
+  "catmullrom",
+);
 
-const computeBaseHeight = (normalizedTheta: number): number => {
-  const taperFactor = 1 - Math.abs(normalizedTheta - 0.5) * 2;
-  return BASE_HEIGHT_MIN + (BASE_HEIGHT_MAX - BASE_HEIGHT_MIN) * taperFactor;
-};
+// Visualise curve
+// const points = fireCurve.getPoints(50);
+// const geometry = new BufferGeometry().setFromPoints(points);
 
-const computeRadialOffset = (rho: number, phi: number): number => {
-  const horizontalFactor = 0.6 * (1 - phi);
-  const irregularity = (Math.random() - 0.5) * 0.2 * (1 - phi);
-  return rho * horizontalFactor + irregularity;
-};
+// const material = new LineBasicMaterial({ color: 0xff0000 });
 
-// Main Function
-const computeFireParticlePosition = (): Vector3Tuple => {
-  const theta = Math.random() * Math.PI; // Random angle - used to move along the "spine" curve of the shape
-  const phi = Math.random(); // Rndom fraction - vertical fraction along the cross-section of the shape, phi=0 -> bottom, phi=1 -> top
-  const rho = (Math.random() - 0.5) * 2; // Radial offset - how far we move radially outward from the central spine
+// // Create the final object to add to the scene
+// export const curveObject = new Line(geometry, material);
 
-  const normalizedTheta = theta / Math.PI; // Normalize theta to [0, 1]
-
-  // Compute spine curve and tangent/normal
-  const [spineX, spineZ] = computeSpinePosition(normalizedTheta);
-  const [normalXNorm, normalZNorm] = computeTangentAndNormal(normalizedTheta);
-
-  // Compute heights and radial offset
-  const baseHeight = computeBaseHeight(normalizedTheta);
-  const y = phi * baseHeight;
-  const radialOffset = computeRadialOffset(rho, phi);
-
-  // Final position
-  const x = spineX + radialOffset * normalXNorm;
-  const z = spineZ + radialOffset * normalZNorm;
-
-  return [x, y, z];
-};
-
-const smoothstep = (edge0: number, edge1: number, x: number): number => {
-  const t = Math.max(0, Math.min(1, (x - edge0) / (edge1 - edge0)));
-  return t * t * (3 - 2 * t);
-};
-
-const computeFireParticleSize = (
-  position: Vector3Tuple,
-  scale: number,
-  minEdgeSize: number = 7, // Minimum size for edge particles
-  edgeDecreaseRate: number = 12.5, // Rate of size decrease for edges
-): number => {
-  const [x, y, z] = position;
-
-  // Compute the distance from the central Y-axis
-  const distFromAxis = Math.sqrt(x * x + z * z);
-
-  // Define the maximum distance at which particles are still "large"
-  const maxDist = 3.5; // Adjust this based on the flame's width
-  const normalizedDist = Math.min(distFromAxis / maxDist, 1);
-
-  // Additional size decrease logic for particles closer to the edges (z < 0)
-  const edgeStart = -2; // Start decreasing size at z = -2
-  const edgeEnd = 0.0; // Fully decrease size at z = 0
-
-  let edgeFactor = smoothstep(edgeEnd, edgeStart, z);
-  edgeFactor = Math.max(minEdgeSize, edgeFactor * edgeDecreaseRate);
-
-  // Compute the vertical shrinking factor
-  const maxHeight = 1.25; // Maximum height of the flame
-  const verticalFactor = Math.max(0.1, 1 - y / maxHeight); // Shrink size as y increases, minimum size 0.1
-
-  // New factor to progressively shrink size as y grows
-  const yShrinkFactor = 1 - Math.min(y / maxHeight, 1); // Reduces size linearly as y approaches maxHeight
-
-  // Combine the distance-based size, edge shrinking, and vertical shrinking
-  const size =
-    (1 - normalizedDist) * verticalFactor * edgeFactor * yShrinkFactor * scale;
-
-  return size;
-};
-
-const computeInitialParticlePositions = (count: number, scale: number) => {
+export const computeInitialParticlePositionsAndSize = (count: number) => {
   const data = new Float32Array(count * 4);
   for (let i = 0; i < count; i++) {
-    const position = computeFireParticlePosition();
-    const size = computeFireParticleSize(position, scale);
-    data.set([...position, size], i * 4);
+    const theta = Math.random(); // Random horizontal point on curve (0 start of curve, 1 end of curve)
+    const phi = Math.random(); // Random vertical factor (0 to 1)
+    const rho = (Math.random() - 0.5) * 2 * 1.5; // Random radial offset (-1 to 1)
+
+    // Get position and tangent from the spline
+    const spinePosition = fireCurve.getPoint(theta);
+    const tangent = fireCurve.getTangent(theta).normalize();
+
+    // Compute the normal vector
+    const normal = new Vector3(0, 1, 0).cross(tangent).normalize();
+
+    // Compute base height and vertical position
+    const taperFactor = 1 - Math.abs(theta - 0.5) * 2; // Normalized tapering factor
+    const baseHeight =
+      BASE_HEIGHT_MIN + (BASE_HEIGHT_MAX - BASE_HEIGHT_MIN) * taperFactor;
+    const y = phi * baseHeight * 0.5;
+
+    // Compute radial offset
+    const horizontalFactor = 0.5 * (1 - phi);
+    const irregularity = (Math.random() - 0.5) * 0.2 * (1 - phi);
+    const radialOffset = rho * horizontalFactor + irregularity;
+
+    // Add radial offset along the normal to the spine position
+    const particlePosition = spinePosition
+      .clone()
+      .addScaledVector(normal, radialOffset)
+      .setY(y);
+
+    const distance = spinePosition.distanceTo(particlePosition);
+
+    // Map distance to size, proportional to max size at this theta
+    const sizeFactor = MathUtils.clamp(
+      1 - distance / (1 * BASE_HEIGHT_MAX), // Normalize distance to a 0-1 range
+      MIN_PARTICLE_SIZE, // Min factor for size
+      MAX_PARTICLE_SIZE, // Max factor for size
+    );
+    const size = taperFactor * sizeFactor;
+
+    data.set([...particlePosition, size], i * 4);
   }
   return data;
-};
-
-export const createFireSharedBufferGeometryAndPositions = (
-  count: number,
-  scale: number,
-) => {
-  const geometry = new BufferGeometry();
-  geometry.setDrawRange(0, count);
-  geometry.boundingSphere = new Sphere(new Vector3(0), 1);
-
-  const particleUvs = computeParticleUvs(count);
-
-  const uvsAttribute = new BufferAttribute(particleUvs, 2);
-  geometry.setAttribute("aParticlesUv", uvsAttribute);
-
-  const initialPositionsAndSize = computeInitialParticlePositions(count, scale);
-
-  return {
-    geometry,
-    initialPositionsAndSize,
-  };
 };

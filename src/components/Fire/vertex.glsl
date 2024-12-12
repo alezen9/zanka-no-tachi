@@ -1,4 +1,4 @@
-#define SCALE 1000.0
+#define SCALE 1200.0
 
 uniform vec2 uResolution;
 uniform sampler2D uParticlesCurrentPositions;
