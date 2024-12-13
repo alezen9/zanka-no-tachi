@@ -1,15 +1,24 @@
 import GpgpuFire from "./GpgpuFire";
-import { useState } from "react";
+import { useRef, useState } from "react";
+import audioFile from "/bankai.mp3?url";
 
 const Fire = () => {
   const [isBankaiActive, setIsBankaiActive] = useState(false);
+  const audio = useRef(new Audio(audioFile));
 
   const onBankai = () => {
+    if (!audio.current) return;
     setIsBankaiActive(true);
+    audio.current.currentTime = 0;
+    audio.current.volume = 1;
+    audio.current.play();
   };
 
   const onShikai = () => {
+    if (!audio.current) return;
     setIsBankaiActive(false);
+    audio.current.pause();
+    audio.current.currentTime = 0;
   };
 
   return (

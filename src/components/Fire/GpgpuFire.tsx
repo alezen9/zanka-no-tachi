@@ -17,6 +17,7 @@ import useGPGpu, { computeParticleUvs } from "./useGPGpu";
 import { computeInitialParticlePositionsAndSize } from "./helpers";
 
 const PARTICLES_COUNT = 5000 * 15;
+const CONVERGENCE_POSITION = new Vector3(0, 0.25, 0);
 
 const particleUvs = computeParticleUvs(PARTICLES_COUNT);
 const initialPositionsAndSize =
@@ -35,20 +36,10 @@ enum Phase {
 
 type GpgpuUniforms = {
   uTime: number;
-  uDeltaTime: number;
   uPhase: Phase;
   uSeed: number;
   uConvergencePosition: Vector3;
-  uBankaiAnimationDurationInSeconds: number;
   uBankaiStartTime: number;
-  uFireHeightMultiplier: number;
-  uShikaiStartTime: number;
-  uBankaiBurnTime: number;
-  uBankaiConvergenceTime: number;
-
-  uBankaiExpansionTimeInSeconds: number;
-  uBankaiTransitionTimeInSeconds: number;
-  uBankaiConvergenceTimeInSeconds: number;
 };
 
 type Props = PointsProps & {
@@ -69,31 +60,20 @@ const GpgpuFire = (props: Props) => {
     if (isGpgpuActive) return;
     initGpgpu(initialPositionsAndSize, {
       uTime: 0,
-      uDeltaTime: 0,
       uPhase: Phase.Shikai,
       uSeed: (Math.random() - 0.5) * 4,
       uConvergencePosition: new Vector3(0, 0, 0),
-      uBankaiAnimationDurationInSeconds: 0.5,
       uBankaiStartTime: 0,
-      uFireHeightMultiplier: 3,
-      uShikaiStartTime: 0,
-      uBankaiBurnTime: 1.5,
-      uBankaiConvergenceTime: 0.25,
-
-      uBankaiExpansionTimeInSeconds: 0.25,
-      uBankaiTransitionTimeInSeconds: 0.25,
-      uBankaiConvergenceTimeInSeconds: 0.15,
     });
   }, [initGpgpu, isGpgpuActive]);
 
   useEffect(() => {
-    const center = new Vector3(0, 0.25, 0);
-    const convergence = pointsRef.current!.worldToLocal(center);
+    const localConvergencePosition =
+      pointsRef.current!.worldToLocal(CONVERGENCE_POSITION);
     updateGpgpuUniforms({
       uPhase: isBankaiActive ? Phase.Bankai : Phase.Shikai,
-      uConvergencePosition: convergence,
+      uConvergencePosition: localConvergencePosition,
       ...(isBankaiActive && { uBankaiStartTime: clock.getElapsedTime() }),
-      ...(!isBankaiActive && { uShikaiStartTime: clock.getElapsedTime() }),
     });
   }, [isBankaiActive, updateGpgpuUniforms, clock]);
 
@@ -112,14 +92,13 @@ const GpgpuFire = (props: Props) => {
     };
   }, []);
 
-  useFrame(({ clock }, delta) => {
+  useFrame(({ clock }) => {
     if (!pointsRef.current || !isGpgpuActive) return;
     const elapsedTime = clock.getElapsedTime();
     pointsRef.current.material.uniforms.uTime.value = elapsedTime;
 
     updateGpgpuUniforms({
       uTime: elapsedTime,
-      uDeltaTime: delta,
     });
 
     const texture = computeGpgpu();
