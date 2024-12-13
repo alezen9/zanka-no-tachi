@@ -43,6 +43,12 @@ type GpgpuUniforms = {
   uBankaiStartTime: number;
   uFireHeightMultiplier: number;
   uShikaiStartTime: number;
+  uBankaiBurnTime: number;
+  uBankaiConvergenceTime: number;
+
+  uBankaiExpansionTimeInSeconds: number;
+  uBankaiTransitionTimeInSeconds: number;
+  uBankaiConvergenceTimeInSeconds: number;
 };
 
 type Props = PointsProps & {
@@ -67,15 +73,21 @@ const GpgpuFire = (props: Props) => {
       uPhase: Phase.Shikai,
       uSeed: (Math.random() - 0.5) * 4,
       uConvergencePosition: new Vector3(0, 0, 0),
-      uBankaiAnimationDurationInSeconds: 1.25,
+      uBankaiAnimationDurationInSeconds: 0.5,
       uBankaiStartTime: 0,
       uFireHeightMultiplier: 3,
       uShikaiStartTime: 0,
+      uBankaiBurnTime: 1.5,
+      uBankaiConvergenceTime: 0.25,
+
+      uBankaiExpansionTimeInSeconds: 0.25,
+      uBankaiTransitionTimeInSeconds: 0.25,
+      uBankaiConvergenceTimeInSeconds: 0.15,
     });
   }, [initGpgpu, isGpgpuActive]);
 
   useEffect(() => {
-    const center = new Vector3(0, -1, 0);
+    const center = new Vector3(0, 0.25, 0);
     const convergence = pointsRef.current!.worldToLocal(center);
     updateGpgpuUniforms({
       uPhase: isBankaiActive ? Phase.Bankai : Phase.Shikai,
