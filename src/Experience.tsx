@@ -30,6 +30,7 @@ const Experience = () => {
           <planeGeometry />
           <meshStandardMaterial color={[5, 5, 5]} />
         </mesh>
+        <ambientLight intensity={1} color="darkorange" visible={false} />
         <group>
           <pointLight
             color="darkorange"

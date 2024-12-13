@@ -20,6 +20,7 @@ const App = () => {
           position: [0, 0, 12],
         }}
       >
+        <color attach="background" args={["#1b1b1b"]} />
         <Experience />
       </Canvas>
     </>

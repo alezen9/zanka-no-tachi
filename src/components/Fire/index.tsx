@@ -16,7 +16,7 @@ const Fire = () => {
     <>
       <mesh position={[0, 3, 0]}>
         <boxGeometry />
-        <meshStandardMaterial color={[2, 2, 2]} />
+        <meshStandardMaterial />
       </mesh>
       <group position={[-1, 0, 1]}>
         <mesh onClick={onShikai}>
@@ -25,12 +25,12 @@ const Fire = () => {
         </mesh>
         <mesh onClick={onBankai} position-x={2}>
           <boxGeometry />
-          <meshStandardMaterial color="white" />
+          <meshStandardMaterial />
         </mesh>
       </group>
       <GpgpuFire
         isBankaiActive={isBankaiActive}
-        scale={[12, 18, 20]}
+        scale={[12, 20, 20]}
         position={[0, -2, 7.5]}
       />
     </>

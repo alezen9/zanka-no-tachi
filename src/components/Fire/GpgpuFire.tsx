@@ -1,4 +1,4 @@
-import { PointsProps, useFrame } from "@react-three/fiber";
+import { PointsProps, useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useRef } from "react";
 import {
   AdditiveBlending,
@@ -16,7 +16,7 @@ import fragmentShader from "./fragment.glsl";
 import useGPGpu, { computeParticleUvs } from "./useGPGpu";
 import { computeInitialParticlePositionsAndSize } from "./helpers";
 
-const PARTICLES_COUNT = 5000 * 25;
+const PARTICLES_COUNT = 5000 * 15;
 
 const particleUvs = computeParticleUvs(PARTICLES_COUNT);
 const initialPositionsAndSize =
@@ -39,6 +39,10 @@ type GpgpuUniforms = {
   uPhase: Phase;
   uSeed: number;
   uConvergencePosition: Vector3;
+  uBankaiAnimationDurationInSeconds: number;
+  uBankaiStartTime: number;
+  uFireHeightMultiplier: number;
+  uShikaiStartTime: number;
 };
 
 type Props = PointsProps & {
@@ -48,6 +52,7 @@ type Props = PointsProps & {
 const GpgpuFire = (props: Props) => {
   const { isBankaiActive, ...rest } = props;
   const pointsRef = useRef<Points<BufferGeometry, ShaderMaterial>>(null);
+  const clock = useThree(({ clock }) => clock);
 
   const { initGpgpu, computeGpgpu, updateGpgpuUniforms, isGpgpuActive } =
     useGPGpu<GpgpuUniforms>({
@@ -62,17 +67,23 @@ const GpgpuFire = (props: Props) => {
       uPhase: Phase.Shikai,
       uSeed: (Math.random() - 0.5) * 4,
       uConvergencePosition: new Vector3(0, 0, 0),
+      uBankaiAnimationDurationInSeconds: 1.25,
+      uBankaiStartTime: 0,
+      uFireHeightMultiplier: 3,
+      uShikaiStartTime: 0,
     });
   }, [initGpgpu, isGpgpuActive]);
 
   useEffect(() => {
-    const center = new Vector3(0, 2, 0);
+    const center = new Vector3(0, -1, 0);
     const convergence = pointsRef.current!.worldToLocal(center);
     updateGpgpuUniforms({
       uPhase: isBankaiActive ? Phase.Bankai : Phase.Shikai,
       uConvergencePosition: convergence,
+      ...(isBankaiActive && { uBankaiStartTime: clock.getElapsedTime() }),
+      ...(!isBankaiActive && { uShikaiStartTime: clock.getElapsedTime() }),
     });
-  }, [isBankaiActive, updateGpgpuUniforms]);
+  }, [isBankaiActive, updateGpgpuUniforms, clock]);
 
   useEffect(() => {
     const observer = new ResizeObserver(() => {
