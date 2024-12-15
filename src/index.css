@@ -8,9 +8,16 @@ body,
   padding: 0;
 }
 
-/* body {
+body {
   background-color: #1b1b1b;
-} */
+  transition: background-color 0s ease-out;
+}
+
+body.bankai {
+  background-color: #fff;
+  transition: background-color 0.25s ease-out;
+  transition-delay: 0.5s;
+}
 
 .leva-wrapper {
   position: absolute;
@@ -67,6 +74,7 @@ https://codepen.io/t_afif/pen/VwxbdpV
   transition: 0.3s linear;
   outline: var(--border-thickness) solid #0000;
   outline-offset: 0.3em;
+  background-color: black;
 }
 
 .interface-btn:hover,
