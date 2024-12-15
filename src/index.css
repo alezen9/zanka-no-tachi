@@ -26,3 +26,65 @@ body,
     display: none;
   }
 }
+
+.interface-btn.audio-enable-disable {
+  right: 5.5rem;
+}
+
+/**
+Credits to Temani Afif
+https://codepen.io/t_afif/pen/VwxbdpV
+**/
+.interface-btn {
+  --border-thickness: 1px;
+  --corner-size: 0.15em;
+  --color: #fff;
+  --border-color: #bb012d;
+
+  filter: drop-shadow(0 10rem 10rem black);
+
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  font-family: system-ui, sans-serif;
+  font-weight: bold;
+  font-size: 1.25rem;
+  cursor: pointer;
+  border: none;
+  display: grid;
+  place-items: center;
+  padding: calc(0.5em + var(--corner-size));
+  color: var(--color);
+  --inner-border-size: var(--corner-size);
+  background: conic-gradient(
+      from 90deg at var(--border-thickness) var(--border-thickness),
+      #0000 90deg,
+      var(--color) 0
+    )
+    var(--inner-border-size) var(--inner-border-size) /
+    calc(100% - var(--border-thickness) - 2 * var(--inner-border-size))
+    calc(100% - var(--border-thickness) - 2 * var(--inner-border-size));
+  transition: 0.3s linear;
+  outline: var(--border-thickness) solid #0000;
+  outline-offset: 0.3em;
+}
+
+.interface-btn:hover,
+.interface-btn:focus-visible {
+  --inner-border-size: 0px;
+  outline-color: var(--color);
+  outline-offset: 0.1em;
+}
+
+.interface-btn:not(:disabled) {
+  opacity: 0.6;
+}
+
+.interface-btn:disabled {
+  pointer-events: none;
+  opacity: 0.3;
+}
+
+.interface-btn > svg {
+  width: 20px;
+}

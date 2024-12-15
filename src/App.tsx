@@ -2,6 +2,7 @@ import { Canvas } from "@react-three/fiber";
 import Experience from "./Experience";
 import { Leva } from "leva";
 import { useState } from "react";
+import Interface from "./components/Interface";
 
 const App = () => {
   const [isDebug] = useState(() => window.location.hash === "#debug");
@@ -23,6 +24,7 @@ const App = () => {
         <color attach="background" args={["#1b1b1b"]} />
         <Experience />
       </Canvas>
+      <Interface />
     </>
   );
 };

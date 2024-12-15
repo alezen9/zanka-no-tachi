@@ -15,6 +15,10 @@ import vertexShader from "./vertex.glsl";
 import fragmentShader from "./fragment.glsl";
 import useGPGpu, { computeParticleUvs } from "./useGPGpu";
 import { computeInitialParticlePositionsAndSize } from "./helpers";
+import usePositionalAudio from "../../hooks/usePositionalAudio";
+import shikaiAudioFileUrl from "/shikai2.mp3?url";
+import bankaiAudioFileUrl from "/bankai.mp3?url";
+import useInterfaceStore from "../../stores/useInterfaceStore";
 
 const PARTICLES_COUNT = 5000 * 15;
 const CONVERGENCE_POSITION = new Vector3(0, 0.25, 0);
@@ -42,19 +46,30 @@ type GpgpuUniforms = {
   uBankaiStartTime: number;
 };
 
-type Props = PointsProps & {
-  isBankaiActive: boolean;
-};
-
-const GpgpuFire = (props: Props) => {
-  const { isBankaiActive, ...rest } = props;
+const GpgpuFire = (props: PointsProps) => {
   const pointsRef = useRef<Points<BufferGeometry, ShaderMaterial>>(null);
   const clock = useThree(({ clock }) => clock);
+  const isBankaiActive = useInterfaceStore((state) => state.isBankaiActive);
 
   const { initGpgpu, computeGpgpu, updateGpgpuUniforms, isGpgpuActive } =
     useGPGpu<GpgpuUniforms>({
       count: PARTICLES_COUNT,
     });
+
+  const shikai = usePositionalAudio({ url: shikaiAudioFileUrl, loop: true });
+  const bankai = usePositionalAudio({ url: bankaiAudioFileUrl });
+
+  useEffect(() => {
+    const unsubscribe = useInterfaceStore.subscribe(async (state) => {
+      await shikai.toggleMute(!state.isAudioActive);
+      await bankai.toggleMute(!state.isAudioActive);
+      await shikai.togglePlay(!state.isBankaiActive);
+      await bankai.togglePlay(state.isBankaiActive);
+    });
+    return () => {
+      unsubscribe();
+    };
+  }, [shikai, bankai]);
 
   useEffect(() => {
     if (isGpgpuActive) return;
@@ -107,7 +122,7 @@ const GpgpuFire = (props: Props) => {
   });
 
   return (
-    <points {...rest} ref={pointsRef}>
+    <points {...props} ref={pointsRef}>
       <bufferGeometry
         boundingSphere={new Sphere(new Vector3(0), 1)}
         drawRange={{
