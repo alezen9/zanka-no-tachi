@@ -60,12 +60,15 @@ const GpgpuFire = (props: PointsProps) => {
   const bankai = usePositionalAudio({ url: bankaiAudioFileUrl });
 
   useEffect(() => {
-    const unsubscribe = useInterfaceStore.subscribe(async (state) => {
-      await shikai.toggleMute(!state.isAudioActive);
-      await bankai.toggleMute(!state.isAudioActive);
-      await shikai.togglePlay(!state.isBankaiActive);
-      await bankai.togglePlay(state.isBankaiActive);
-    });
+    const unsubscribe = useInterfaceStore.subscribe(
+      async (state, prevState) => {
+        await shikai.toggleMute(!state.isAudioActive);
+        await bankai.toggleMute(!state.isAudioActive);
+        await shikai.togglePlay(!state.isBankaiActive);
+        if (state.isBankaiActive !== prevState.isBankaiActive)
+          await bankai.togglePlay(state.isBankaiActive);
+      },
+    );
     return () => {
       unsubscribe();
     };

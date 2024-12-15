@@ -62,6 +62,9 @@ vec4 animateShikai(vec2 uv){
 vec4 animateBankai(vec2 uv) {
     if (uPhase == 0) return vec4(0.0);
 
+    float currentSize = texture(uParticlesCurrentPositions, uv).w;
+    if(currentSize <= 0.0) return vec4(0.0);
+
     vec4 particle = texture(uParticlesInitialPositions, uv);
     vec3 initialPosition = particle.xyz;
     float initialSize = particle.w;
