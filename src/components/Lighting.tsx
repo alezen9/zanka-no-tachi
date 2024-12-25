@@ -23,20 +23,20 @@ const Lighting = () => {
       <CustomAmbientLight intensity={0} />
       <CustomPointLight
         color="darkorange"
-        position={[0, 10, -15]}
-        intensity={50}
+        position={[0, 10, -10]}
+        intensity={200}
         decay={2}
       />
       <CustomPointLight
         color="darkorange"
-        position={[-10, 10, 1]}
-        intensity={75}
+        position={[-3, 15, 3]}
+        intensity={500}
         decay={3}
       />
       <CustomPointLight
         color="darkorange"
-        position={[10, 10, 1]}
-        intensity={75}
+        position={[3, 15, 3]}
+        intensity={500}
         decay={3}
       />
     </>
@@ -72,7 +72,7 @@ const CustomAmbientLight = (props: AmbientLightProps) => {
 };
 
 const CustomPointLight = (props: PointLightProps) => {
-  const { intensity } = props;
+  const { intensity = 1 } = props;
   const light = useRef<PointLight>(null);
   const gsapRef = useRef<GSAPTween>();
 
