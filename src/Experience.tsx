@@ -24,6 +24,7 @@ const Experience = () => {
         minPolarAngle={0}
       />
       <Scene position-y={-3} />
+      {/* <Sky inclination={0} rayleigh={0.35} turbidity={0} /> */}
     </>
   );
 };

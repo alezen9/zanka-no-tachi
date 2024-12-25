@@ -1,6 +1,6 @@
 import { GroupProps } from "@react-three/fiber";
 import GpgpuFire from "./GpgpuFire/GpgpuFire";
-import Yamamoto from "./Yamamoto";
+import Yamamoto from "./Yamamoto/Yamamoto";
 import Lighting from "./Lighting";
 
 const Scene = (props: GroupProps) => {
@@ -18,7 +18,7 @@ export default Scene;
 
 const TemporaryGround = () => {
   return (
-    <mesh rotation-x={-Math.PI / 2} scale={100}>
+    <mesh rotation-x={-Math.PI / 2} scale={100} receiveShadow>
       <planeGeometry />
       <meshStandardMaterial />
     </mesh>
