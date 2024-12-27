@@ -3,6 +3,7 @@ import { useEffect, useRef } from "react";
 import useInterfaceStore from "../stores/useInterfaceStore";
 import { PointLight } from "three";
 import gsap from "gsap";
+import { BakeShadows } from "@react-three/drei";
 
 const Lighting = () => {
   useEffect(() => {
@@ -23,53 +24,34 @@ const Lighting = () => {
       <group name="shikai-lights">
         <CustomPointLight
           color="darkorange"
-          position={[0, 10, -5]}
-          shikaiIntensity={5000}
+          position={[0, 20, -20]}
+          shikaiIntensity={1500}
           bankaiIntensity={0}
-          decay={3}
+          decay={2}
+          castShadow
         />
         <CustomPointLight
           color="darkorange"
-          position={[-20, 10, -27.5]}
-          shikaiIntensity={5000}
+          position={[0, 20, 5]}
+          shikaiIntensity={1500}
           bankaiIntensity={0}
-          decay={3}
-        />
-        <CustomPointLight
-          color="darkorange"
-          position={[10, 10, -30]}
-          shikaiIntensity={10000}
-          bankaiIntensity={0}
-          decay={3}
-        />
-        <CustomPointLight
-          color="darkorange"
-          position={[-5, 15, 5]}
-          shikaiIntensity={5000}
-          bankaiIntensity={0}
-          decay={3}
-        />
-        <CustomPointLight
-          color="darkorange"
-          position={[5, 15, 5]}
-          shikaiIntensity={5000}
-          bankaiIntensity={0}
-          decay={3}
+          decay={2}
         />
       </group>
       <group name="bankai-lights">
         <CustomPointLight
           color="white"
-          position={[-10, 20, 0]}
+          position={[0, 20, -20]}
           shikaiIntensity={0}
-          bankaiIntensity={1000}
+          bankaiIntensity={1500}
           decay={2}
+          castShadow
         />
         <CustomPointLight
           color="white"
-          position={[10, 20, 0]}
+          position={[0, 20, 5]}
           shikaiIntensity={0}
-          bankaiIntensity={1000}
+          bankaiIntensity={1500}
           decay={2}
         />
       </group>
@@ -108,13 +90,15 @@ const CustomPointLight = (
   }, [shikaiIntensity, bankaiIntensity]);
 
   return (
-    <pointLight
-      {...props}
-      intensity={shikaiIntensity}
-      ref={light}
-      // castShadow
-      // shadow-mapSize={2048}
-      // shadow-bias={-0.001}
-    />
+    <>
+      <BakeShadows />
+      <pointLight
+        {...props}
+        intensity={shikaiIntensity}
+        ref={light}
+        shadow-mapSize={2048}
+        shadow-bias={-0.001}
+      />
+    </>
   );
 };
