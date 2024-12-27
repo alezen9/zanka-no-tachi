@@ -24,6 +24,7 @@ type GLTFResult = GLTF & {
     ["face-head"]: Mesh;
     ["face-beard"]: Mesh;
     ["face-eyes"]: Mesh;
+    ["face-ears"]: Mesh;
     ["zampakuto-handle-middle"]: Mesh;
     ["zampakuto-guard"]: Mesh;
     ["zampakuto-blade"]: Mesh;
@@ -70,67 +71,63 @@ const Yamamoto = (props: GroupProps) => {
   });
 
   return (
-    <group {...props} rotation-y={-Math.PI / 2} castShadow>
+    <group {...props} rotation-y={-Math.PI / 2}>
       <mesh
         name="equipment-sandals"
         castShadow
-        receiveShadow
         geometry={nodes["equipment-sandals"].geometry}
         material={materials.sandal}
       />
       <mesh
         name="face-eyebrows"
         castShadow
-        receiveShadow
         geometry={nodes["face-eyebrows"].geometry}
         material={materials.hair}
       />
       <mesh
         name="face-mustache"
         castShadow
-        receiveShadow
         geometry={nodes["face-mustache"].geometry}
         material={materials.hair}
       />
       <mesh
         name="face-head"
         castShadow
-        receiveShadow
         geometry={nodes["face-head"].geometry}
         material={materials.skin}
       />
       <mesh
         name="face-beard"
         castShadow
-        receiveShadow
         geometry={nodes["face-beard"].geometry}
         material={materials.hair}
       />
       <mesh
         name="face-eyes"
         castShadow
-        receiveShadow
         geometry={nodes["face-eyes"].geometry}
         material={materials.eye}
       />
       <mesh
+        castShadow
+        geometry={nodes["face-ears"].geometry}
+        material={materials.skin}
+      />
+      <mesh
         name="zampakuto-handle-middle"
         castShadow
-        receiveShadow
         geometry={nodes["zampakuto-handle-middle"].geometry}
         material={materials.grip}
       />
       <mesh
         name="zampakuto-guard"
         castShadow
-        receiveShadow
         geometry={nodes["zampakuto-guard"].geometry}
         material={materials.guard}
       />
       <mesh
         name="zampakuto-blade"
         castShadow
-        receiveShadow
         geometry={nodes["zampakuto-blade"].geometry}
       >
         <shaderMaterial
@@ -146,63 +143,54 @@ const Yamamoto = (props: GroupProps) => {
       <mesh
         name="equipment-belt"
         castShadow
-        receiveShadow
         geometry={nodes["equipment-belt"].geometry}
         material={materials.belt}
       />
       <mesh
         name="equipment-cloath"
         castShadow
-        receiveShadow
         geometry={nodes["equipment-cloath"].geometry}
         material={materials.cloath}
       />
       <mesh
         name="equipment-scabbard-bottom"
         castShadow
-        receiveShadow
         geometry={nodes["equipment-scabbard-bottom"].geometry}
         material={materials["scabbard-bottom"]}
       />
       <mesh
         name="body-torso"
         castShadow
-        receiveShadow
         geometry={nodes["body-torso"].geometry}
         material={materials.skin}
       />
       <mesh
         name="body-hand"
         castShadow
-        receiveShadow
         geometry={nodes["body-hand"].geometry}
         material={materials.skin}
       />
       <mesh
         name="body-legs"
         castShadow
-        receiveShadow
         geometry={nodes["body-legs"].geometry}
         material={materials.skin}
       />
       <mesh
         name="equipment-scabbard-top"
         castShadow
-        receiveShadow
         geometry={nodes["equipment-scabbard-top"].geometry}
         material={materials["scabbard-top"]}
       />
       <mesh
         name="zampakuto-handle-top"
         castShadow
-        receiveShadow
         geometry={nodes["zampakuto-handle-top"].geometry}
         material={materials.guard}
       />
       <mesh
         name="zampakuto-handle-bottom"
         castShadow
-        receiveShadow
         geometry={nodes["zampakuto-handle-bottom"].geometry}
         material={materials.guard}
       />
