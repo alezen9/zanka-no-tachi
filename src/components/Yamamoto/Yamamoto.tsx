@@ -1,48 +1,73 @@
-import * as THREE from "three";
-import { useGLTF } from "@react-three/drei";
+import { useGLTF, useTexture } from "@react-three/drei";
 import { GLTF } from "three-stdlib";
 import modelUrl from "/yamamoto.glb?url";
-import { GroupProps } from "@react-three/fiber";
+import { GroupProps, useFrame } from "@react-three/fiber";
 import bladeVertexShader from "./blade.vertex.glsl";
 import bladeFragmentShader from "./blade.fragment.glsl";
+import {
+  Mesh,
+  MeshPhysicalMaterial,
+  MeshStandardMaterial,
+  RepeatWrapping,
+  ShaderMaterial,
+  SRGBColorSpace,
+  Uniform,
+} from "three";
+import cracksTextureUrl from "/cracks2.webp?url";
+import { useEffect, useRef } from "react";
 
 type GLTFResult = GLTF & {
   nodes: {
-    ["equipment-sandals"]: THREE.Mesh;
-    ["face-eyebrows"]: THREE.Mesh;
-    ["face-mustache"]: THREE.Mesh;
-    ["face-head"]: THREE.Mesh;
-    ["face-beard"]: THREE.Mesh;
-    ["face-eyes"]: THREE.Mesh;
-    ["zampakuto-handle-middle"]: THREE.Mesh;
-    ["zampakuto-guard"]: THREE.Mesh;
-    ["zampakuto-blade"]: THREE.Mesh;
-    ["equipment-belt"]: THREE.Mesh;
-    ["equipment-cloath"]: THREE.Mesh;
-    ["equipment-scabbard-bottom"]: THREE.Mesh;
-    ["body-torso"]: THREE.Mesh;
-    ["body-hand"]: THREE.Mesh;
-    ["body-legs"]: THREE.Mesh;
-    ["equipment-scabbard-top"]: THREE.Mesh;
-    ["zampakuto-handle-top"]: THREE.Mesh;
-    ["zampakuto-handle-bottom"]: THREE.Mesh;
+    ["equipment-sandals"]: Mesh;
+    ["face-eyebrows"]: Mesh;
+    ["face-mustache"]: Mesh;
+    ["face-head"]: Mesh;
+    ["face-beard"]: Mesh;
+    ["face-eyes"]: Mesh;
+    ["zampakuto-handle-middle"]: Mesh;
+    ["zampakuto-guard"]: Mesh;
+    ["zampakuto-blade"]: Mesh;
+    ["equipment-belt"]: Mesh;
+    ["equipment-cloath"]: Mesh;
+    ["equipment-scabbard-bottom"]: Mesh;
+    ["body-torso"]: Mesh;
+    ["body-hand"]: Mesh;
+    ["body-legs"]: Mesh;
+    ["equipment-scabbard-top"]: Mesh;
+    ["zampakuto-handle-top"]: Mesh;
+    ["zampakuto-handle-bottom"]: Mesh;
   };
   materials: {
-    sandal: THREE.MeshPhysicalMaterial;
-    hair: THREE.MeshStandardMaterial;
-    skin: THREE.MeshStandardMaterial;
-    eye: THREE.MeshStandardMaterial;
-    grip: THREE.MeshStandardMaterial;
-    guard: THREE.MeshStandardMaterial;
-    belt: THREE.MeshStandardMaterial;
-    cloath: THREE.MeshStandardMaterial;
-    ["scabbard-bottom"]: THREE.MeshStandardMaterial;
-    ["scabbard-top"]: THREE.MeshStandardMaterial;
+    sandal: MeshPhysicalMaterial;
+    hair: MeshStandardMaterial;
+    skin: MeshStandardMaterial;
+    eye: MeshStandardMaterial;
+    grip: MeshStandardMaterial;
+    guard: MeshStandardMaterial;
+    belt: MeshStandardMaterial;
+    cloath: MeshStandardMaterial;
+    ["scabbard-bottom"]: MeshStandardMaterial;
+    ["scabbard-top"]: MeshStandardMaterial;
   };
 };
 
 const Yamamoto = (props: GroupProps) => {
   const { nodes, materials } = useGLTF(modelUrl) as GLTFResult;
+  const bladeMaterialRef = useRef<ShaderMaterial>(null);
+
+  const cracksTexture = useTexture(cracksTextureUrl);
+
+  useEffect(() => {
+    cracksTexture.colorSpace = SRGBColorSpace;
+    cracksTexture.wrapS = RepeatWrapping;
+    cracksTexture.wrapT = RepeatWrapping;
+    cracksTexture.needsUpdate = true;
+  }, [cracksTexture]);
+
+  useFrame(({ clock }) => {
+    if (!bladeMaterialRef.current) return;
+    bladeMaterialRef.current.uniforms.uTime.value = clock.getElapsedTime();
+  });
 
   return (
     <group {...props} rotation-y={-Math.PI / 2} castShadow>
@@ -108,10 +133,14 @@ const Yamamoto = (props: GroupProps) => {
         receiveShadow
         geometry={nodes["zampakuto-blade"].geometry}
       >
-        <meshStandardMaterial color="black" />
         <shaderMaterial
+          ref={bladeMaterialRef}
           vertexShader={bladeVertexShader}
           fragmentShader={bladeFragmentShader}
+          uniforms={{
+            cracksTexture: new Uniform(cracksTexture),
+            uTime: new Uniform(0),
+          }}
         />
       </mesh>
       <mesh

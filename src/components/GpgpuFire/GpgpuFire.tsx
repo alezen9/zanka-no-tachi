@@ -20,7 +20,7 @@ import shikaiAudioFileUrl from "/shikai2.mp3?url";
 import bankaiAudioFileUrl from "/bankai.mp3?url";
 import useInterfaceStore from "../../stores/useInterfaceStore";
 
-const PARTICLES_COUNT = 5000 * 50;
+const PARTICLES_COUNT = 5000 * 75;
 const CONVERGENCE_POSITION = new Vector3(0, 0.25, 0);
 
 const particleUvs = computeParticleUvs(PARTICLES_COUNT);

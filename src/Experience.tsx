@@ -18,12 +18,13 @@ const Experience = () => {
         makeDefault
         enableDamping
         maxDistance={60}
-        minDistance={6.5}
-        enablePan={false}
+        // minDistance={6.5}
+        // enablePan={false}
         maxPolarAngle={Math.PI / 2.05}
         minPolarAngle={0}
       />
       <Scene position-y={-3} />
+      {/* <fog attach="fog" color="black" near={20} far={150} /> */}
       {/* <Sky inclination={0} rayleigh={0.35} turbidity={0} /> */}
     </>
   );
