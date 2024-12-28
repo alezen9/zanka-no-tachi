@@ -13,7 +13,7 @@ import {
   SRGBColorSpace,
   Uniform,
 } from "three";
-import cracksTextureUrl from "/cracks2.webp?url";
+import cracksTextureUrl from "/cracks.webp?url";
 import { useEffect, useRef } from "react";
 
 type GLTFResult = GLTF & {
