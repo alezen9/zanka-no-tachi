@@ -20,8 +20,7 @@ import shikaiAudioFileUrl from "/shikai2.mp3?url";
 import bankaiAudioFileUrl from "/bankai.mp3?url";
 import useInterfaceStore from "../../stores/useInterfaceStore";
 
-const dpi = window.devicePixelRatio;
-const multiplier = dpi === 1 ? 40 : 75;
+const multiplier = 10;
 
 const PARTICLES_COUNT = 5000 * multiplier;
 const CONVERGENCE_POSITION = new Vector3(0, 0.25, 0);

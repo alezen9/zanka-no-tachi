@@ -63,7 +63,8 @@ void main()
     float coreFactor = smoothstep(2.0, 0.0, vSize);
     vec3 fireColor = mix(fireCoreColor, fireTipColor, coreFactor);
 
-    fireColor *= 0.25;
+    // fireColor *= 0.25;
+    fireColor *= 0.45;
     
     float maskFactor = getHexagonalMaskFactor();
     float alpha = 1.0 - smoothstep(0.9, 1.0, maskFactor);

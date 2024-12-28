@@ -6,7 +6,7 @@ import Scene from "./components/Scene";
 const Experience = () => {
   const { isPerformancePanelVisible } = useControls("Monitoring", {
     isPerformancePanelVisible: {
-      value: true,
+      value: false,
       label: "Show performance",
     },
   });
@@ -24,8 +24,6 @@ const Experience = () => {
         minPolarAngle={0}
       />
       <Scene position-y={-3} />
-      {/* <fog attach="fog" color="black" near={20} far={150} /> */}
-      {/* <Sky inclination={0} rayleigh={0.35} turbidity={0} /> */}
     </>
   );
 };
