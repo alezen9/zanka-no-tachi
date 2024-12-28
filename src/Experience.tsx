@@ -18,8 +18,8 @@ const Experience = () => {
         makeDefault
         enableDamping
         maxDistance={60}
-        // minDistance={6.5}
-        // enablePan={false}
+        minDistance={6.5}
+        enablePan={false}
         maxPolarAngle={Math.PI / 2.05}
         minPolarAngle={0}
       />
