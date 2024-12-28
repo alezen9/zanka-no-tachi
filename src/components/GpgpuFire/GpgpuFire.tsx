@@ -3,6 +3,7 @@ import { useEffect, useRef } from "react";
 import {
   AdditiveBlending,
   BufferGeometry,
+  MathUtils,
   Points,
   ShaderMaterial,
   Sphere,
@@ -20,9 +21,7 @@ import shikaiAudioFileUrl from "/shikai2.mp3?url";
 import bankaiAudioFileUrl from "/bankai.mp3?url";
 import useInterfaceStore from "../../stores/useInterfaceStore";
 
-const multiplier = 10;
-
-const PARTICLES_COUNT = 5000 * multiplier;
+const PARTICLES_COUNT = 5000 * 10;
 const CONVERGENCE_POSITION = new Vector3(0, 0.25, 0);
 
 const particleUvs = computeParticleUvs(PARTICLES_COUNT);
@@ -33,6 +32,7 @@ const uniforms = {
   uResolution: new Uniform(new Vector2(0)),
   uParticlesCurrentPositions: new Uniform(new Texture()),
   uTime: new Uniform(0),
+  uScale: new Uniform(0),
 };
 
 enum Phase {
@@ -104,6 +104,21 @@ const GpgpuFire = (props: PointsProps) => {
       const x = window.innerWidth * dpr;
       const y = window.innerHeight * dpr;
       pointsRef.current.material.uniforms.uResolution.value.set(x, y);
+
+      const screenSizeScale = MathUtils.lerp(
+        0,
+        1000,
+        MathUtils.mapLinear(
+          Math.min(x, y),
+          0,
+          (y <= x ? window.outerHeight : window.outerWidth) * dpr,
+          0,
+          1,
+        ),
+      );
+      const dprScale = dpr === 1 ? 1.25 : 1.75;
+      const combinedScale = screenSizeScale * dprScale;
+      pointsRef.current.material.uniforms.uScale.value = combinedScale;
     });
     observer.observe(document.body);
 
