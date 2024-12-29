@@ -1,5 +1,3 @@
-// #define SCALE 1050.0
-
 uniform vec2 uResolution;
 uniform sampler2D uParticlesCurrentPositions;
 uniform float uScale;
