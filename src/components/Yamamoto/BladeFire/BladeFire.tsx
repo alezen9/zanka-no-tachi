@@ -42,7 +42,6 @@ const BladeFire = (props: PointsProps) => {
           value: state.isBankaiActive ? 0 : PARTICLE_SCALE,
           duration: state.isBankaiActive ? 1 : 0,
           ease: "power2.out",
-          delay: state.isBankaiActive ? 0.5 : 0,
           onComplete: () => {
             if (!pointsRef.current) return;
             pointsRef.current.visible = !state.isBankaiActive;

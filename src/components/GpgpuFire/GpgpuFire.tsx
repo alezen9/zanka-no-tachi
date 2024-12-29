@@ -77,6 +77,32 @@ const GpgpuFire = (props: PointsProps) => {
   }, [shikai, bankai]);
 
   useEffect(() => {
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+    const bankaiAnimationDurationInMs = 1000;
+
+    const unsubscribe = useInterfaceStore.subscribe((state, prevState) => {
+      if (state.isBankaiActive !== prevState.isBankaiActive) {
+        if (!pointsRef.current) return;
+
+        // Immediately set visibility to true while the animation runs
+        pointsRef.current.visible = true;
+
+        // Schedule visibility toggle after bankaiAnimationDurationInMs
+        if (timeoutId) clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => {
+          if (!pointsRef.current) return;
+          pointsRef.current.visible = !state.isBankaiActive;
+        }, bankaiAnimationDurationInMs);
+      }
+    });
+
+    return () => {
+      unsubscribe();
+      if (timeoutId) clearTimeout(timeoutId);
+    };
+  }, []);
+
+  useEffect(() => {
     if (isGpgpuActive) return;
     initGpgpu(initialPositionsAndSize, {
       uTime: 0,
