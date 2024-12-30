@@ -5,15 +5,17 @@ attribute vec4 aParticle;
 uniform float uTime;
 uniform float uScale;
 
+varying float vSize;
 varying vec3 vColor;
 
 void main()
 {
     vec3 position = aParticle.xyz;
     float size = aParticle.w;
+    vSize = size;
 
     // Rotation angle in radians
-    float theta = radians(-60.0);
+    float theta = radians(-7.0);
 
     // Rotation matrix for z-y plane
     float cosTheta = cos(theta);
@@ -24,33 +26,40 @@ void main()
     float yRotated = sinTheta * position.z + cosTheta * position.y;
 
     // Apply parabolic effect in rotated space
-    float parabola = 2.0 * zRotated * zRotated;
+    float parabola = 0.15 * zRotated * zRotated;
     position.y = yRotated + parabola;
+
+    // Apply squashing effect along z-axis as particles move upward
+    float squishingStrength = 5.0;
+    float squashFactor = exp(-squishingStrength * position.y);
+    squashFactor = max(0.01, squashFactor); // Prevent squash from going to 0
+    position.z *= squashFactor;
+
 
     // Add noise-based upward movement with looping
     float verticalNoise = simplexNoise2d(position.xz);
     verticalNoise = (verticalNoise + 1.0) * 0.5;
     position.y += mod(uTime + position.y, verticalNoise * 2.0);
 
-    // Add wavering on xz axes
-    float horizontalNoise =  simplexNoise2d(vec2(verticalNoise, uTime * 0.1 * size)) * 0.15;
-    position.x += sin(horizontalNoise * 2.0);
-    position.z += cos(horizontalNoise * 5.0) - 1.0;
-
     vec4 modelPosition = modelMatrix * vec4(position, 1.0);
     vec4 viewPosition = viewMatrix * modelPosition;
     vec4 projectedPosition = projectionMatrix * viewPosition;
     gl_Position = projectedPosition;
 
-    gl_PointSize = size * uScale;
+    // Compute size attenuation based on y position
+    float attenuationFactor = exp(-1.0 * position.y); // Exponential shrink as y increases
+    attenuationFactor = max(0.1, attenuationFactor); // Prevent size from becoming too small
+
+    // Apply attenuation to the point size
+    gl_PointSize = size * uScale * attenuationFactor;
     gl_PointSize *= (1.0 / -viewPosition.z); // Perspective fix
 
     // Use noise or another factor to vary the shade of grey
-    float shadeFactor = simplexNoise2d(position.xz);
-    shadeFactor = (shadeFactor + 1.0) * 0.5;
+    float shadeFactor = simplexNoise2d(position.xz); // Noise value for variation
+    shadeFactor = (shadeFactor + 1.0) * 0.5; // Normalize to [0, 1]
 
     // Interpolate between dark and light grey
-    vec3 fireCoreColor = vec3(0.58, 0.55, 0.4);
-    vec3 fireRedColor = vec3(0.76, 0.27, 0.09);
-    vColor = mix(fireCoreColor, fireRedColor, shadeFactor);
+    vec3 darkGrey = vec3(0.4, 0.4, 0.4); // RGB: (102, 102, 102)
+    vec3 lightGrey = vec3(0.8, 0.8, 0.8); // RGB: (204, 204, 204)
+    vColor = mix(darkGrey, lightGrey, shadeFactor);
 }

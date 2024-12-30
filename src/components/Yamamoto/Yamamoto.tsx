@@ -16,6 +16,7 @@ import {
 import cracksTextureUrl from "/cracks.webp?url";
 import { useEffect, useRef } from "react";
 import BladeFire from "./BladeFire/BladeFire";
+import BladeSmoke from "./BladeSmoke/BladeSmoke";
 
 type GLTFResult = GLTF & {
   nodes: {
@@ -97,11 +98,8 @@ const Yamamoto = (props: GroupProps) => {
         geometry={nodes["zampakuto-guard"].geometry}
         material={materials.guard}
       />
-      <BladeFire
-        scale={[0.15, 0.15, 1.9]}
-        position={[-0.2, 2.55, 1]}
-        rotation-x={0.25}
-      />
+      <BladeFire scale={[0.15, 0.275, 1.9]} position={[-0.2, 2.35, 2.1]} />
+      <BladeSmoke scale={[0.05, 1, 1]} position={[-0.16, 2.45, 1.85]} />
       <mesh
         name="zampakuto-blade"
         castShadow

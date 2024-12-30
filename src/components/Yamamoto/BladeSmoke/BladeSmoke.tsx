@@ -2,7 +2,6 @@ import { PointsProps, useFrame } from "@react-three/fiber";
 import vertexShader from "./vertex.glsl";
 import fragmentShader from "./fragment.glsl";
 import {
-  AdditiveBlending,
   BufferGeometry,
   MathUtils,
   Points,
@@ -15,8 +14,8 @@ import { useEffect, useRef } from "react";
 import gsap from "gsap";
 import useInterfaceStore from "../../../stores/useInterfaceStore";
 
-const PARTICLES_COUNT = 2500;
-const PARTICLE_SCALE = 150;
+const PARTICLES_COUNT = 500;
+const PARTICLE_SCALE = 100;
 
 const particles = new Float32Array(PARTICLES_COUNT * 4);
 
@@ -29,7 +28,7 @@ for (let i = 0; i < PARTICLES_COUNT; i++) {
   particles.set([x, y, z, size], i * 4);
 }
 
-const BladeFire = (props: PointsProps) => {
+const BladeSmoke = (props: PointsProps) => {
   const pointsRef = useRef<Points<BufferGeometry, ShaderMaterial>>(null);
   const gsapRef = useRef<GSAPTween>();
 
@@ -39,12 +38,17 @@ const BladeFire = (props: PointsProps) => {
         gsapRef.current?.kill();
         if (!pointsRef.current) return;
         gsapRef.current = gsap.to(pointsRef.current.material.uniforms.uScale, {
-          value: state.isBankaiActive ? 0 : PARTICLE_SCALE,
-          duration: state.isBankaiActive ? 1 : 0,
+          value: state.isBankaiActive ? PARTICLE_SCALE : 0,
+          duration: state.isBankaiActive ? 3 : 0,
+          delay: state.isBankaiActive ? 2 : 0,
           ease: "power2.out",
+          onStart: () => {
+            if (!pointsRef.current) return;
+            pointsRef.current.visible = state.isBankaiActive;
+          },
           onComplete: () => {
             if (!pointsRef.current) return;
-            pointsRef.current.visible = !state.isBankaiActive;
+            pointsRef.current.visible = state.isBankaiActive;
           },
         });
       }
@@ -61,7 +65,7 @@ const BladeFire = (props: PointsProps) => {
   });
 
   return (
-    <points {...props} ref={pointsRef}>
+    <points {...props} ref={pointsRef} visible={false}>
       <bufferGeometry
         boundingSphere={new Sphere(new Vector3(0), 1)}
         drawRange={{
@@ -79,16 +83,15 @@ const BladeFire = (props: PointsProps) => {
       <shaderMaterial
         uniforms={{
           uTime: new Uniform(0),
-          uScale: new Uniform(PARTICLE_SCALE),
+          uScale: new Uniform(0),
         }}
         vertexShader={vertexShader}
         fragmentShader={fragmentShader}
         depthWrite={false}
         transparent
-        blending={AdditiveBlending}
       />
     </points>
   );
 };
 
-export default BladeFire;
+export default BladeSmoke;
