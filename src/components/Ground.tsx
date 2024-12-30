@@ -18,7 +18,7 @@ type GLTFResult = GLTF & {
 const Ground = (props: GroupProps) => {
   const { nodes, materials } = useGLTF(modelUrl) as GLTFResult;
   return (
-    <group {...props}>
+    <group {...props} rotation-y={-Math.PI / 2}>
       <mesh
         name="ground"
         receiveShadow
