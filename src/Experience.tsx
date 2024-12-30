@@ -1,19 +1,14 @@
 import { OrbitControls } from "@react-three/drei";
 import { Perf } from "r3f-perf";
-import { useControls } from "leva";
 import Scene from "./components/Scene";
+import { useState } from "react";
 
 const Experience = () => {
-  const { isPerformancePanelVisible } = useControls("Monitoring", {
-    isPerformancePanelVisible: {
-      value: false,
-      label: "Show performance",
-    },
-  });
+  const [isDebug] = useState(() => window.location.hash === "#debug");
 
   return (
     <>
-      {isPerformancePanelVisible && <Perf position="top-left" />}
+      {isDebug && <Perf position="top-left" />}
       <OrbitControls
         makeDefault
         enableDamping

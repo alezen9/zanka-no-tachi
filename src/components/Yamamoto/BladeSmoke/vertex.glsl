@@ -16,16 +16,13 @@ void main()
 
     // Rotation angle in radians
     float theta = radians(-7.0);
-
     // Rotation matrix for z-y plane
     float cosTheta = cos(theta);
     float sinTheta = sin(theta);
-
     // Rotate z and y
     float zRotated = cosTheta * position.z - sinTheta * position.y;
     float yRotated = sinTheta * position.z + cosTheta * position.y;
-
-    // Apply parabolic effect in rotated space
+    // Apply parabolic effect in rotated space to match katana curvature
     float parabola = 0.15 * zRotated * zRotated;
     position.y = yRotated + parabola;
 
@@ -41,12 +38,12 @@ void main()
     position.z *= squashFactor;
 
     // Add wavering to the squished pillar (dynamic motion)
-    float horizontalNoiseX = simplexNoise2d(vec2(position.y, uTime * 0.2)) * 0.25; // Noise for x
-    float horizontalNoiseZ = simplexNoise2d(vec2(position.y + 10.0, uTime * 0.2)) * 0.25; // Noise for z
+    float horizontalNoiseX = simplexNoise2d(vec2(position.y, uTime * 0.2)) * 0.25;
+    float horizontalNoiseZ = simplexNoise2d(vec2(position.y + 10.0, uTime * 0.2)) * 0.25;
 
     // Waver the pillar along x and z axes
     position.x += sin(uTime * 0.01 + horizontalNoiseX * 5.0) * 0.1;
-    position.z += cos(uTime * 0.01 + horizontalNoiseZ * 5.0) * 0.1; // Add to squished z
+    position.z += cos(uTime * 0.01 + horizontalNoiseZ * 5.0) * 0.1;
 
 
     vec4 modelPosition = modelMatrix * vec4(position, 1.0);
@@ -62,9 +59,9 @@ void main()
     gl_PointSize = size * uScale * attenuationFactor;
     gl_PointSize *= (1.0 / -viewPosition.z); // Perspective fix
 
-    // Use noise or another factor to vary the shade of grey
-    float shadeFactor = simplexNoise2d(position.xz); // Noise value for variation
-    shadeFactor = (shadeFactor + 1.0) * 0.5; // Normalize to [0, 1]
+    // Vary the shade of grey based on noise
+    float shadeFactor = simplexNoise2d(position.xz);
+    shadeFactor = (shadeFactor + 1.0) * 0.5;
 
     // Interpolate between dark and light grey
     vec3 darkGrey = vec3(0.4, 0.4, 0.4); // RGB: (102, 102, 102)

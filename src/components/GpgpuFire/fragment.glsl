@@ -7,8 +7,8 @@ varying float vSize;
 
 void main()
 {
-    vec3 fireCoreColor = vec3(0.58, 0.55, 0.4);       // White for the core
-    vec3 fireTipColor = vec3(0.76, 0.27, 0.09);  // Red for outer particles
+    vec3 fireCoreColor = vec3(0.58, 0.55, 0.4); // White for the core
+    vec3 fireTipColor = vec3(0.76, 0.27, 0.09); // Red for outer particles
 
 
     float coreFactor = smoothstep(2.0, 0.0, vSize);

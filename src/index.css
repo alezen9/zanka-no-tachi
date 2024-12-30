@@ -19,21 +19,6 @@ body.bankai {
   transition-delay: 0.5s;
 }
 
-.leva-wrapper {
-  position: absolute;
-}
-
-.leva-wrapper > div {
-  max-width: 380px;
-  width: 100%;
-}
-
-@media screen and (max-width: 500px) {
-  .leva-wrapper {
-    display: none;
-  }
-}
-
 .interface-btn.audio-enable-disable {
   right: 5.5rem;
 }

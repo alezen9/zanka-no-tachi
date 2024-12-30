@@ -15,8 +15,8 @@ import { useEffect, useRef } from "react";
 import gsap from "gsap";
 import useInterfaceStore from "../../../stores/useInterfaceStore";
 
-const PARTICLES_COUNT = 2500;
-const PARTICLE_SCALE = 125;
+const PARTICLES_COUNT = 3500;
+const PARTICLE_SCALE = 100;
 
 const particles = new Float32Array(PARTICLES_COUNT * 4);
 
@@ -41,6 +41,7 @@ const BladeFire = (props: PointsProps) => {
         gsapRef.current = gsap.to(pointsRef.current.material.uniforms.uScale, {
           value: state.isBankaiActive ? 0 : PARTICLE_SCALE,
           duration: state.isBankaiActive ? 1 : 0,
+          delay: state.isBankaiActive ? 0.5 : 0,
           ease: "power2.out",
           onComplete: () => {
             if (!pointsRef.current) return;

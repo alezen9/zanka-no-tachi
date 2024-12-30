@@ -15,7 +15,6 @@ uniform float uSeed;
 uniform vec3 uConvergencePosition;
 uniform float uBankaiStartTime;
 
-// Shikai Animation
 vec4 animateShikai(vec2 uv){
     if(uPhase == 1) return vec4(0.0);
     
@@ -58,7 +57,6 @@ vec4 animateShikai(vec2 uv){
     return vec4(position, size);
 }
 
-// Bankai Animation
 vec4 animateBankai(vec2 uv) {
     if (uPhase == 0) return vec4(0.0);
 
@@ -134,7 +132,7 @@ vec4 animateBankai(vec2 uv) {
     );
     float convergenceScale = smoothstep(0.0, 1.0, convergenceProgress);
 
-    // Move towards convergence point (0,0,0)
+    // Move towards convergence point (0,0,0) center of the scene and center of the spline
     initialPosition = mix(burningPosition, uConvergencePosition, convergenceScale);
 
     // Shrink size to 0 during convergence

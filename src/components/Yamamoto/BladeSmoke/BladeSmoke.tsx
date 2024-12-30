@@ -15,7 +15,7 @@ import gsap from "gsap";
 import useInterfaceStore from "../../../stores/useInterfaceStore";
 
 const PARTICLES_COUNT = 1000;
-const PARTICLE_SCALE = 50;
+const PARTICLE_SCALE = 75;
 
 const particles = new Float32Array(PARTICLES_COUNT * 4);
 
