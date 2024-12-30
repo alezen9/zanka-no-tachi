@@ -98,7 +98,7 @@ const Yamamoto = (props: GroupProps) => {
         geometry={nodes["zampakuto-guard"].geometry}
         material={materials.guard}
       />
-      <BladeFire scale={[0.15, 0.275, 1.9]} position={[-0.2, 2.35, 2.1]} />
+      <BladeFire scale={[0.15, 0.275, 1.9]} position={[-0.2, 2.35, 2]} />
       <BladeSmoke scale={[0.05, 1, 1]} position={[-0.16, 2.45, 1.85]} />
       <mesh
         name="zampakuto-blade"

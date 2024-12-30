@@ -28,12 +28,12 @@ void main()
     position.y = yRotated + parabola;
 
     // Add noise-based upward movement with looping
-    float verticalNoise = simplexNoise2d(position.xz);
+    float verticalNoise = simplexNoise2d(vec2(position.x, -position.z * position.y));
     verticalNoise = (verticalNoise + 1.0) * 0.5;
     position.y += mod(uTime + position.y, verticalNoise * 2.0);
 
     // Add wavering on xz axes
-    float horizontalNoise =  simplexNoise2d(vec2(verticalNoise, uTime * 0.1 * size)) * 0.15;
+    float horizontalNoise =  simplexNoise2d(vec2(verticalNoise, uTime * 0.5 * size)) * 0.075;
     position.x += sin(horizontalNoise * 2.0);
     position.z += cos(horizontalNoise * 5.0) - 1.0;
 
