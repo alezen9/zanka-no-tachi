@@ -15,7 +15,7 @@ import { useEffect, useRef } from "react";
 import gsap from "gsap";
 import useInterfaceStore from "../../../stores/useInterfaceStore";
 
-const PARTICLES_COUNT = 500;
+const PARTICLES_COUNT = 2500;
 const PARTICLE_SCALE = 100;
 
 const particles = new Float32Array(PARTICLES_COUNT * 4);

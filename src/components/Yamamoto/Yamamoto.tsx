@@ -98,9 +98,9 @@ const Yamamoto = (props: GroupProps) => {
         material={materials.guard}
       />
       <BladeFire
-        scale={[0.15, 0.275, 2]}
+        scale={[0.15, 0.15, 1.9]}
         position={[-0.2, 2.55, 1]}
-        rotation-x={0.15}
+        rotation-x={0.25}
       />
       <mesh
         name="zampakuto-blade"

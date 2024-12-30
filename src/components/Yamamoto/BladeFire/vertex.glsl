@@ -1,7 +1,5 @@
 #include ../../../utils/shaders/simplexNoise/simplexNoise.glsl
 
-#define LIFESPAN 0.3
-
 attribute vec4 aParticle;
 
 uniform float uTime;
@@ -15,11 +13,14 @@ void main()
     float size = aParticle.w;
     vSize = size;
 
+    // Apply parabolic base along z-axis to follow the blade
+    float parabola = 1.5 * position.z * position.z;
+    position.y += parabola;
+
+    // Add noise-based upward movement with looping
     float noise = simplexNoise2d(position.xz);
     noise = (noise + 1.0) * 0.5;
-
-    // Upward movement with looping (mod for repeating motion + noise to create simple spikes)
-    position.y += mod(uTime + position.y, LIFESPAN * noise * 5.0);
+    position.y += mod(uTime + position.y, noise * 2.0);
 
     vec4 modelPosition = modelMatrix * vec4(position, 1.0);
     vec4 viewPosition = viewMatrix * modelPosition;
@@ -28,5 +29,4 @@ void main()
 
     gl_PointSize = size * uScale;
     gl_PointSize *= (1.0 / -viewPosition.z); // Perspective fix
-
 }
