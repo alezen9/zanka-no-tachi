@@ -29,17 +29,25 @@ void main()
     float parabola = 0.15 * zRotated * zRotated;
     position.y = yRotated + parabola;
 
+    // Add noise-based upward movement with looping
+    float verticalNoise = simplexNoise2d(position.xz);
+    verticalNoise = (verticalNoise + 1.0) * 0.5;
+    position.y += mod(uTime * 0.15 + position.y, verticalNoise * 2.0);
+
     // Apply squashing effect along z-axis as particles move upward
     float squishingStrength = 5.0;
     float squashFactor = exp(-squishingStrength * position.y);
     squashFactor = max(0.01, squashFactor); // Prevent squash from going to 0
     position.z *= squashFactor;
 
+    // Add wavering to the squished pillar (dynamic motion)
+    float horizontalNoiseX = simplexNoise2d(vec2(position.y, uTime * 0.2)) * 0.25; // Noise for x
+    float horizontalNoiseZ = simplexNoise2d(vec2(position.y + 10.0, uTime * 0.2)) * 0.25; // Noise for z
 
-    // Add noise-based upward movement with looping
-    float verticalNoise = simplexNoise2d(position.xz);
-    verticalNoise = (verticalNoise + 1.0) * 0.5;
-    position.y += mod(uTime + position.y, verticalNoise * 2.0);
+    // Waver the pillar along x and z axes
+    position.x += sin(uTime * 0.01 + horizontalNoiseX * 5.0) * 0.1;
+    position.z += cos(uTime * 0.01 + horizontalNoiseZ * 5.0) * 0.1; // Add to squished z
+
 
     vec4 modelPosition = modelMatrix * vec4(position, 1.0);
     vec4 viewPosition = viewMatrix * modelPosition;
