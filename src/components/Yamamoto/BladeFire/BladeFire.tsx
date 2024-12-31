@@ -20,6 +20,11 @@ const PARTICLE_SCALE = 100;
 
 const particles = new Float32Array(PARTICLES_COUNT * 4);
 
+const uniforms = {
+  uTime: new Uniform(0),
+  uScale: new Uniform(PARTICLE_SCALE),
+};
+
 for (let i = 0; i < PARTICLES_COUNT; i++) {
   const x = Math.random();
   const y = Math.random();
@@ -31,34 +36,39 @@ for (let i = 0; i < PARTICLES_COUNT; i++) {
 
 const BladeFire = (props: PointsProps) => {
   const pointsRef = useRef<Points<BufferGeometry, ShaderMaterial>>(null);
-  const gsapRef = useRef<GSAPTween>();
 
   useEffect(() => {
-    const unsubscribe = useInterfaceStore.subscribe((state, prevState) => {
-      if (state.isBankaiActive !== prevState.isBankaiActive) {
-        gsapRef.current?.kill();
-        if (!pointsRef.current) return;
-        gsapRef.current = gsap.to(pointsRef.current.material.uniforms.uScale, {
-          value: state.isBankaiActive ? 0 : PARTICLE_SCALE,
-          duration: state.isBankaiActive ? 1 : 0,
-          delay: state.isBankaiActive ? 0.5 : 0,
-          ease: "power2.out",
-          onComplete: () => {
-            if (!pointsRef.current) return;
-            pointsRef.current.visible = !state.isBankaiActive;
-          },
-        });
-      }
-    });
+    const points = pointsRef.current;
+    const unsubscribe = useInterfaceStore.subscribe(
+      ({ isBankaiActive }, { isBankaiActive: prevIsBankaiActive }) => {
+        if (!points || isBankaiActive === prevIsBankaiActive) return;
+        gsap.killTweensOf(uniforms.uScale);
+        if (!isBankaiActive) {
+          uniforms.uScale.value = PARTICLE_SCALE;
+          points.visible = true;
+        } else {
+          gsap.to(uniforms.uScale, {
+            value: 0,
+            duration: 1,
+            delay: 0.5,
+            ease: "power2.out",
+            onComplete: () => {
+              points.visible = false;
+            },
+          });
+        }
+      },
+    );
 
     return () => {
       unsubscribe();
+      gsap.killTweensOf(uniforms.uScale);
     };
   }, []);
 
   useFrame(({ clock }) => {
     if (!pointsRef.current) return;
-    pointsRef.current.material.uniforms.uTime.value = clock.getElapsedTime();
+    uniforms.uTime.value = clock.getElapsedTime();
   });
 
   return (
@@ -78,10 +88,7 @@ const BladeFire = (props: PointsProps) => {
         />
       </bufferGeometry>
       <shaderMaterial
-        uniforms={{
-          uTime: new Uniform(0),
-          uScale: new Uniform(PARTICLE_SCALE),
-        }}
+        uniforms={uniforms}
         vertexShader={vertexShader}
         fragmentShader={fragmentShader}
         depthWrite={false}

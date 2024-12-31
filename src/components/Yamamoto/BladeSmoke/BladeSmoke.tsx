@@ -14,8 +14,13 @@ import { useEffect, useRef } from "react";
 import gsap from "gsap";
 import useInterfaceStore from "../../../stores/useInterfaceStore";
 
-const PARTICLES_COUNT = 1000;
-const PARTICLE_SCALE = 75;
+const PARTICLES_COUNT = 2000;
+const PARTICLE_SCALE = 50;
+
+const uniforms = {
+  uTime: new Uniform(0),
+  uScale: new Uniform(0),
+};
 
 const particles = new Float32Array(PARTICLES_COUNT * 4);
 
@@ -30,32 +35,33 @@ for (let i = 0; i < PARTICLES_COUNT; i++) {
 
 const BladeSmoke = (props: PointsProps) => {
   const pointsRef = useRef<Points<BufferGeometry, ShaderMaterial>>(null);
-  const gsapRef = useRef<GSAPTween>();
 
   useEffect(() => {
-    const unsubscribe = useInterfaceStore.subscribe((state, prevState) => {
-      if (state.isBankaiActive !== prevState.isBankaiActive) {
-        gsapRef.current?.kill();
-        if (!pointsRef.current) return;
-        gsapRef.current = gsap.to(pointsRef.current.material.uniforms.uScale, {
-          value: state.isBankaiActive ? PARTICLE_SCALE : 0,
-          duration: state.isBankaiActive ? 3 : 0,
-          delay: state.isBankaiActive ? 2 : 0,
-          ease: "power2.out",
-          onStart: () => {
-            if (!pointsRef.current) return;
-            pointsRef.current.visible = state.isBankaiActive;
-          },
-          onComplete: () => {
-            if (!pointsRef.current) return;
-            pointsRef.current.visible = state.isBankaiActive;
-          },
-        });
-      }
-    });
+    const points = pointsRef.current;
+    const unsubscribe = useInterfaceStore.subscribe(
+      ({ isBankaiActive }, { isBankaiActive: prevIsBankaiActive }) => {
+        if (!points || isBankaiActive === prevIsBankaiActive) return;
+        gsap.killTweensOf(uniforms.uScale);
+        if (!isBankaiActive) {
+          uniforms.uScale.value = 0;
+          points.visible = false;
+        } else {
+          gsap.to(uniforms.uScale, {
+            value: PARTICLE_SCALE,
+            duration: 2,
+            delay: 1.5,
+            ease: "power2.out",
+            onStart: () => {
+              points.visible = true;
+            },
+          });
+        }
+      },
+    );
 
     return () => {
       unsubscribe();
+      gsap.killTweensOf(uniforms.uScale);
     };
   }, []);
 
@@ -81,10 +87,7 @@ const BladeSmoke = (props: PointsProps) => {
         />
       </bufferGeometry>
       <shaderMaterial
-        uniforms={{
-          uTime: new Uniform(0),
-          uScale: new Uniform(0),
-        }}
+        uniforms={uniforms}
         vertexShader={vertexShader}
         fragmentShader={fragmentShader}
         depthWrite={false}

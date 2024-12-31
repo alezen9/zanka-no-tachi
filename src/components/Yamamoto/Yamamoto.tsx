@@ -99,7 +99,7 @@ const Yamamoto = (props: GroupProps) => {
         material={materials.guard}
       />
       <BladeFire scale={[0.15, 0.2, 1.9]} position={[-0.2, 2.45, 2]} />
-      <BladeSmoke scale={[0.05, 1, 1]} position={[-0.16, 2.45, 1.85]} />
+      <BladeSmoke scale={[0.05, 1, 1]} position={[-0.16, 2.5, 1.7]} />
       <mesh
         name="zampakuto-blade"
         castShadow
