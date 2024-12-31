@@ -43,10 +43,10 @@ const Experience = () => {
         maxPolarAngle={Math.PI / 2.05}
         minPolarAngle={0}
       />
+      <Scene position-y={-3} />
       <EffectComposer enabled={isEffectComposerEnabled}>
         <Heatwave />
       </EffectComposer>
-      <Scene position-y={-3} />
     </>
   );
 };
