@@ -22,6 +22,7 @@ import bankaiAudioFileUrl from "/bankai.mp3?url";
 import useInterfaceStore from "../../stores/useInterfaceStore";
 
 const PARTICLES_COUNT = 5000 * 10;
+const PARTICLES_SCALE_MULTIPLIER = 1150;
 const CONVERGENCE_POSITION = new Vector3(0, 0.25, 0);
 
 const particleUvs = computeParticleUvs(PARTICLES_COUNT);
@@ -134,10 +135,8 @@ const GpgpuFire = (props: PointsProps) => {
       // Final scale combining vertical scaling and DPR adjustment
       const finalScale = dpr * verticalScale;
 
-      const fixedScaleMultiplier = 1250;
-
       uniforms.uScale.value =
-        MathUtils.clamp(finalScale, 0.1, 2.0) * fixedScaleMultiplier;
+        MathUtils.clamp(finalScale, 0.1, 2.0) * PARTICLES_SCALE_MULTIPLIER;
     });
 
     observer.observe(document.body);

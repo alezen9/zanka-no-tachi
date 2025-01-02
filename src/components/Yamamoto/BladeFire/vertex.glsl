@@ -13,7 +13,7 @@ void main()
     float size = aParticle.w;
 
     // Rotation angle in radians
-    float theta = radians(-110.0);
+    float theta = radians(-135.0);
     // Rotation matrix for z-y plane
     float cosTheta = cos(theta);
     float sinTheta = sin(theta);
@@ -21,8 +21,10 @@ void main()
     float zRotated = cosTheta * position.z - sinTheta * position.y;
     float yRotated = sinTheta * position.z + cosTheta * position.y;
     // Apply parabolic effect in rotated space to match katana curvature
-    float parabola = 2.0 * zRotated * zRotated;
+    float parabola = 3.0 * zRotated * zRotated;
     position.y = yRotated + parabola;
+
+
 
     // Add noise-based upward movement with looping
     float verticalNoise = simplexNoise2d(vec2(position.x, position.z));
