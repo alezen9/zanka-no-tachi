@@ -50,7 +50,7 @@ const BladeSmoke = (props: PointsProps) => {
             value: PARTICLE_SCALE,
             duration: 2,
             delay: 1.5,
-            ease: "power2.out",
+            ease: "power3.out",
             onStart: () => {
               points.visible = true;
             },

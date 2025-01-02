@@ -50,8 +50,8 @@ const BladeFire = (props: PointsProps) => {
           gsap.to(uniforms.uScale, {
             value: 0,
             duration: 1,
-            delay: 0.5,
-            ease: "power2.out",
+            delay: 0.05,
+            ease: "power3.in",
             onComplete: () => {
               points.visible = false;
             },

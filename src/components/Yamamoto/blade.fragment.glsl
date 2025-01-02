@@ -5,10 +5,10 @@ uniform float uTime;
 varying vec2 vUv;
 
 void main() {
-    vec3 bladeColor = vec3(0.0);
+    vec3 bladeColor = vec3(-0.25);
 
     float crackMask = texture2D(cracksTexture, vUv).r; // Red channel for grayscale
-    
+
     float noise = simplexNoise2d(vUv);
     noise = (noise + 1.0) * 0.5;
 

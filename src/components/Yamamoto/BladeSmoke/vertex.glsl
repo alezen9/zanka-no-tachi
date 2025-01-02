@@ -66,5 +66,5 @@ void main()
     // Interpolate between dark and light grey
     vec3 darkGrey = vec3(0.4, 0.4, 0.4); // RGB: (102, 102, 102)
     vec3 lightGrey = vec3(0.8, 0.8, 0.8); // RGB: (204, 204, 204)
-    vColor = mix(darkGrey, lightGrey, shadeFactor);
+    vColor = mix(lightGrey, darkGrey, shadeFactor);
 }
