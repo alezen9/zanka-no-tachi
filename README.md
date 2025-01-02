@@ -73,7 +73,7 @@ Animating the scene required careful attention to detail:
   With GSAP, I smoothed transitions between phases, handled particle appearance/disappearance, and ensured unused particles were properly cleaned up.
 
 - **Sound Design:** <br />
-  To enhance immersion, I incorporated sound effects, including Yamamoto's Bankai declaration and burning fire, edited with tools like DaVinci Resolve.
+  To enhance immersion, I incorporated sound effects, including Yamamoto's Bankai declaration and burning fire, edited with tools like DaVinci Resolve. Additionally, I implemented the sounds using positional audio to further enhance the sense of presence and make the experience even more immersive.
 
 <br />
 <br />
