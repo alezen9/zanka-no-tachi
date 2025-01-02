@@ -1,7 +1,7 @@
 import { Effect } from "postprocessing";
 import fragmentShader from "./fragment.glsl";
 import { RepeatWrapping, Texture, TextureLoader, Uniform } from "three";
-import leopardTextureUrl from "/pattern.webp?url";
+import leopardTextureUrl from "/leopard-pattern.webp?url";
 import useInterfaceStore from "../../stores/useInterfaceStore";
 import gsap from "gsap";
 

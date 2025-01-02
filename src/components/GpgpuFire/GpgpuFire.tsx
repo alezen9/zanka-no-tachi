@@ -17,7 +17,7 @@ import fragmentShader from "./fragment.glsl";
 import useGPGpu, { computeParticleUvs } from "./useGPGpu";
 import { computeInitialParticlePositionsAndSize } from "./helpers";
 import usePositionalAudio from "../../hooks/usePositionalAudio";
-import shikaiAudioFileUrl from "/shikai2.mp3?url";
+import shikaiAudioFileUrl from "/shikai.mp3?url";
 import bankaiAudioFileUrl from "/bankai.mp3?url";
 import useInterfaceStore from "../../stores/useInterfaceStore";
 

@@ -13,7 +13,7 @@ import {
   SRGBColorSpace,
   Uniform,
 } from "three";
-import cracksTextureUrl from "/cracks.webp?url";
+import cracksTextureUrl from "/blade-cracks.webp?url";
 import { useEffect, useRef } from "react";
 import BladeFire from "./BladeFire/BladeFire";
 import BladeSmoke from "./BladeSmoke/BladeSmoke";
