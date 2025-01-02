@@ -21,7 +21,7 @@ const Experience = () => {
         } else {
           timeoutId = setTimeout(() => {
             setIsEffectComposerEnabled(true);
-          }, 2000);
+          }, 1000);
         }
       }
     });
