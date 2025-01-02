@@ -30,7 +30,7 @@ const initialPositionsAndSize =
 
 const uniforms = {
   uResolution: new Uniform(new Vector2(0)),
-  uParticlesCurrentPositions: new Uniform(new Texture()),
+  uParticlesCurrentPositions: new Uniform(new Texture() as Texture | undefined),
   uTime: new Uniform(0),
   uScale: new Uniform(0),
 };
@@ -126,26 +126,20 @@ const GpgpuFire = (props: PointsProps) => {
   useEffect(() => {
     const observer = new ResizeObserver(() => {
       if (!pointsRef.current) return;
-      const dpr = Math.min(window.devicePixelRatio, 2);
-      const x = window.innerWidth * dpr;
-      const y = window.innerHeight * dpr;
-      pointsRef.current.material.uniforms.uResolution.value.set(x, y);
 
-      const screenSizeScale = MathUtils.lerp(
-        0,
-        1000,
-        MathUtils.mapLinear(
-          Math.min(x, y),
-          0,
-          (y <= x ? window.outerHeight : window.outerWidth) * dpr,
-          0,
-          1,
-        ),
-      );
-      const dprScale = dpr === 1 ? 1.25 : 1.75;
-      const combinedScale = screenSizeScale * dprScale;
-      pointsRef.current.material.uniforms.uScale.value = combinedScale;
+      const dpr = window.devicePixelRatio;
+      const baseHeight = 1080; // Reference vertical resolution
+      const verticalScale = window.innerHeight / baseHeight;
+
+      // Final scale combining vertical scaling and DPR adjustment
+      const finalScale = dpr * verticalScale;
+
+      const fixedScaleMultiplier = 1250;
+
+      uniforms.uScale.value =
+        MathUtils.clamp(finalScale, 0.1, 2.0) * fixedScaleMultiplier;
     });
+
     observer.observe(document.body);
 
     return () => {
@@ -156,15 +150,14 @@ const GpgpuFire = (props: PointsProps) => {
   useFrame(({ clock }) => {
     if (!pointsRef.current || !isGpgpuActive) return;
     const elapsedTime = clock.getElapsedTime();
-    pointsRef.current.material.uniforms.uTime.value = elapsedTime;
+    uniforms.uTime.value = elapsedTime;
 
     updateGpgpuUniforms({
       uTime: elapsedTime,
     });
 
     const texture = computeGpgpu();
-    pointsRef.current.material.uniforms.uParticlesCurrentPositions.value =
-      texture;
+    uniforms.uParticlesCurrentPositions.value = texture;
   });
 
   return (
