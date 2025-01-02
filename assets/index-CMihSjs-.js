@@ -4972,7 +4972,7 @@ void main()
     
     float verticalNoise = simplexNoise2d(vec2(position.x, position.z));
     verticalNoise = (verticalNoise + 1.0) * 0.5;
-    position.y += mod(uTime + position.y, verticalNoise * 2.0);
+    position.y += mod(uTime + size * 2.0 + position.y, verticalNoise * 2.0);
 
     
     float horizontalNoise =  simplexNoise2d(vec2(verticalNoise, uTime * 0.5 * size)) * 0.075;
