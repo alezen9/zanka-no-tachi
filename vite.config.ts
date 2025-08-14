@@ -4,5 +4,5 @@ import glsl from "vite-plugin-glsl";
 
 export default defineConfig({
   plugins: [react(), glsl()],
-  base: "/zanka-no-tachi",
+  base: "/",
 });

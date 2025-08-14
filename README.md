@@ -10,7 +10,7 @@ As a long-time fan of Bleach, I’ve always admired Yamamoto Genryūsai's charac
 
 ## 🌅 Preview
 
-[![Preview Image](/public/docs-preview.png)](https://alezen9.github.io/zanka-no-tachi/)
+[![Preview Image](/public/docs-preview.png)](zanka-no-tachi.aleksandargjoreski.dev)
 Click the image above to view the live experience directly!
 
 <br />
